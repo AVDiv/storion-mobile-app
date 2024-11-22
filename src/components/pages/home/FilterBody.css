@@ -1,0 +1,38 @@
+.filter-body {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 10px;
+  padding: 20px 40px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 20px,
+    black 90%,
+    transparent
+  );
+}
+
+.filter-body::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-tag {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-tag:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.filter-tag:hover .tag-indicator {
+  fill: white;
+}

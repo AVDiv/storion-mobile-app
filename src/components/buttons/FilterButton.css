@@ -1,0 +1,48 @@
+.filter-button {
+  background-color: #ffffff8f;
+  backdrop-filter: blur(10px);
+  color: var(--color-dark-primary);
+  padding: 8px 16px;
+  border-radius: 25px;
+  margin-bottom: 5px;
+  display: inline-block;
+  transition: all 0.3s;
+  font-size: 1rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  min-width: max-content;
+  width: auto;
+  max-width: none;
+}
+
+.filter-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: inherit;
+  transition: left 0.3s ease;
+  z-index: -1;
+}
+
+.filter-button:hover {
+  background-color: #ffffffcf;
+  transform: translateY(-1px);
+}
+
+.filter-button.active::before {
+  left: 0;
+}
+
+.filter-button.active {
+  background-color: transparent;
+  color: white;
+  border-color: rgba(255, 255, 255, 0.2);
+}
