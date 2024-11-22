@@ -10,6 +10,7 @@ ion-header.translucent {
   transform: translateY(10px);
   transition: all 0.3s ease;
   position: absolute;
+  top: 30%;
   left: 56px;
   right: 16px;
 }
