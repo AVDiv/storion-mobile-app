@@ -1,0 +1,19 @@
+.tag {
+  background-color: #FFFFFF8F;
+  backdrop-filter: blur(10px);
+  color: var(--color-dark-primary);
+  padding: 5px 10px;
+  border-radius: 25px;
+  margin-bottom: 5px;
+  display: inline-block;
+  transition: all 0.3s;/
+}
+
+.tag .tag-indicator {
+  fill: var(--color-primary);
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+.tag .tag-content {
+}

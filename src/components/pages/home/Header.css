@@ -1,0 +1,26 @@
+ion-header {
+  --background: transparent;
+  --ion-toolbar-background: transparent;
+  transition: background-color 0.5s ease, --ion-toolbar-background 0.5s ease;
+}
+
+ion-header.translucent {
+  --background: rgba(255, 255, 255, 0.3);
+  --ion-toolbar-background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  transition: --background 0.5s ease, --ion-toolbar-background 0.5s ease;
+}
+
+ion-header ion-title {
+  font-size: 2.4rem;
+  font-weight: 600;
+}
+
+ion-header ion-title.title-small {
+  font-size: 1.5rem;
+}
+
+ion-header ion-toolbar {
+  padding: 20px 10px !important;
+  transition-duration: 0.5s;
+}
