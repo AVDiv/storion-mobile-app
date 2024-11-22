@@ -2,6 +2,7 @@ import { IonCard, IonCardContent, IonCardHeader } from "@ionic/react";
 import React from "react";
 import "./FeedCard.css";
 import Tag from "../utils/Tag";
+import { useHistory } from "react-router-dom";
 
 interface FeedCardProps {
   title: string;
@@ -22,8 +23,14 @@ const FeedCard: React.FC<FeedCardProps> = ({
   topic,
   region,
 }) => {
+  const history = useHistory();
+
+  const handleClick = () => {
+    history.push(`/article/1`); // Replace 1 with actual article ID later
+  };
+
   return (
-    <IonCard className="feed-card">
+    <IonCard className="feed-card" onClick={handleClick}>
       <IonCardHeader>
         <div className="card-image">
           <div className="feed-card-header-details">

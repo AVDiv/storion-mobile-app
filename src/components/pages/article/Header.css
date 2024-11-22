@@ -1,0 +1,29 @@
+ion-header.translucent {
+  --background: rgba(255, 255, 255, 0.9);
+  --ion-toolbar-background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.1);
+}
+
+.header-title {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  position: absolute;
+  left: 56px;
+  right: 16px;
+}
+
+.header-title.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.header-title h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

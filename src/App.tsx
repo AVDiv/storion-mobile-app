@@ -10,6 +10,7 @@ import {
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 import Home from "./pages/Home";
+import Article from "./pages/Article";
 
 import "@ionic/react/css/core.css";
 
@@ -39,19 +40,31 @@ import "@ionic/react/css/palettes/dark.class.css";
 
 import "./theme/global.css";
 import "./theme/variables.css";
+import Search from "./pages/Search";
 
-setupIonicReact();
+setupIonicReact({
+  mode: "md",
+  rippleEffect: true,
+  hardwareBackButton: true,
+  statusTap: true,
+});
 
 const App: React.FC = () => (
   <IonApp>
     <IonReactRouter>
       <IonTabs>
         <IonRouterOutlet>
+          <Route exact path="/">
+            <Redirect to="/home" />
+          </Route>
           <Route exact path="/home">
             <Home />
           </Route>
-          <Route exact path="/">
-            <Redirect to="/home" />
+          <Route exact path="/search">
+            <Search />
+          </Route>
+          <Route exact path="/article/:id">
+            <Article />
           </Route>
         </IonRouterOutlet>
         <IonTabBar slot="bottom">
@@ -60,9 +73,9 @@ const App: React.FC = () => (
             <IonLabel>Home</IonLabel>
           </IonTabButton>
 
-          <IonTabButton tab="explore" layout="icon-start" href="/explore">
+          <IonTabButton tab="search" layout="icon-start" href="/search">
             <SearchIcon />
-            <IonLabel>Explore</IonLabel>
+            <IonLabel>Search</IonLabel>
           </IonTabButton>
 
           <IonTabButton tab="unknown" layout="icon-start" href="/#">
