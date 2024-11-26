@@ -14,7 +14,11 @@ const ArticleHeader: React.FC<HeaderProps> = ({
   showTitle,
 }) => {
   return (
-    <IonHeader className={`${isTranslucent ? "translucent" : "ion-no-border"}`}>
+    <IonHeader
+      className={`article-ion-header ${
+        isTranslucent ? "translucent" : "ion-no-border"
+      }`}
+    >
       <IonToolbar>
         <IonButtons slot="start">
           <IonBackButton defaultHref="/home" icon={ArrowLeftIcon} />

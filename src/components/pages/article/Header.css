@@ -1,4 +1,4 @@
-ion-header.translucent {
+.article-ion-header.translucent {
   --background: rgba(255, 255, 255, 0.9);
   --ion-toolbar-background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
