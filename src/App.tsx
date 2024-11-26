@@ -1,4 +1,4 @@
-import { Redirect, Route } from "react-router-dom";
+import { Redirect, Route, Switch } from "react-router-dom";
 import {
   IonApp,
   IonLabel,
@@ -11,6 +11,8 @@ import {
 import { IonReactRouter } from "@ionic/react-router";
 import Home from "./pages/Home";
 import Article from "./pages/Article";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
 
 import "@ionic/react/css/core.css";
 
@@ -52,42 +54,46 @@ setupIonicReact({
 const App: React.FC = () => (
   <IonApp>
     <IonReactRouter>
-      <IonTabs>
-        <IonRouterOutlet>
-          <Route exact path="/">
-            <Redirect to="/home" />
-          </Route>
-          <Route exact path="/home">
-            <Home />
-          </Route>
-          <Route exact path="/search">
-            <Search />
-          </Route>
-          <Route exact path="/article/:id">
-            <Article />
-          </Route>
-        </IonRouterOutlet>
-        <IonTabBar slot="bottom">
-          <IonTabButton tab="home" layout="icon-start" href="/home">
-            <HomeIcon />
-            <IonLabel>Home</IonLabel>
-          </IonTabButton>
+      <Switch>
+        {/* Auth routes without tabs */}
+        <Route exact path="/login" component={Login} />
+        <Route exact path="/signup" component={Signup} />
 
-          <IonTabButton tab="search" layout="icon-start" href="/search">
-            <SearchIcon />
-            <IonLabel>Search</IonLabel>
-          </IonTabButton>
+        {/* Main app routes with tabs */}
+        <Route>
+          <IonTabs>
+            <IonRouterOutlet>
+              <Route exact path="/">
+                <Redirect to="/home" />
+              </Route>
+              <Route exact path="/home" component={Home} />
+              <Route exact path="/search" component={Search} />
+              <Route exact path="/article/:id" component={Article} />
+            </IonRouterOutlet>
 
-          <IonTabButton tab="unknown" layout="icon-start" href="/#">
-            <IonLabel>Unknown</IonLabel>
-          </IonTabButton>
+            <IonTabBar slot="bottom">
+              <IonTabButton tab="home" layout="icon-start" href="/home">
+                <HomeIcon />
+                <IonLabel>Home</IonLabel>
+              </IonTabButton>
 
-          <IonTabButton tab="profile" layout="icon-start" href="/profile">
-            <UserIcon />
-            <IonLabel>Profile</IonLabel>
-          </IonTabButton>
-        </IonTabBar>
-      </IonTabs>
+              <IonTabButton tab="search" layout="icon-start" href="/search">
+                <SearchIcon />
+                <IonLabel>Search</IonLabel>
+              </IonTabButton>
+
+              <IonTabButton tab="unknown" layout="icon-start" href="/#">
+                <IonLabel>Unknown</IonLabel>
+              </IonTabButton>
+
+              <IonTabButton tab="profile" layout="icon-start" href="/profile">
+                <UserIcon />
+                <IonLabel>Profile</IonLabel>
+              </IonTabButton>
+            </IonTabBar>
+          </IonTabs>
+        </Route>
+      </Switch>
     </IonReactRouter>
   </IonApp>
 );
