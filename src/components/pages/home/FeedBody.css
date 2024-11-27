@@ -4,4 +4,35 @@
   align-items: center;
   row-gap: 15px;
   padding-inline: 40px;
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  padding-bottom: 450px;
+}
+
+.feed-card-container {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 500px;
+  filter: blur(4px);
+  opacity: 0.6;
+  transform: scale(0.95);
+}
+
+.feed-card-container.active {
+  filter: blur(0);
+  opacity: 1;
+  transform: scale(1);
+}
+
+.feed-body::-webkit-scrollbar {
+  display: none;
+}
+
+.feed-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

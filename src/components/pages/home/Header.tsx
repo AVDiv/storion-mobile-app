@@ -9,7 +9,11 @@ interface HeaderProps {
 
 const HomeHeader: React.FC<HeaderProps> = ({ isTranslucent }) => {
   return (
-    <IonHeader className={`${isTranslucent ? "translucent" : "ion-no-border"}`}>
+    <IonHeader
+      className={`ion-header-home ${
+        isTranslucent ? "translucent" : "ion-no-border"
+      }`}
+    >
       <IonToolbar>
         <IonTitle>Tuesday</IonTitle>
         <IonTitle size="small">13th November 2024</IonTitle>

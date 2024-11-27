@@ -1,26 +1,26 @@
-ion-header {
+.ion-header-home {
   --background: transparent;
   --ion-toolbar-background: transparent;
   transition: background-color 0.5s ease, --ion-toolbar-background 0.5s ease;
 }
 
-ion-header.translucent {
-  --background: rgba(255, 255, 255, 0.3);
-  --ion-toolbar-background: rgba(255, 255, 255, 0.3);
+.ion-header-home.translucent {
+  --background: rgba(255, 255, 255, 0.5);
+  --ion-toolbar-background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(10px);
   transition: --background 0.5s ease, --ion-toolbar-background 0.5s ease;
 }
 
-ion-header ion-title {
+.ion-header-home ion-title {
   font-size: 2.4rem;
   font-weight: 600;
 }
 
-ion-header ion-title.title-small {
+.ion-header-home ion-title.title-small {
   font-size: 1.5rem;
 }
 
-ion-header ion-toolbar {
+.ion-header-home ion-toolbar {
   padding: 20px 10px !important;
   transition-duration: 0.5s;
 }
