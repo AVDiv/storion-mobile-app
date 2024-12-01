@@ -9,7 +9,7 @@ import { Link, useHistory } from "react-router-dom";
 import "./styles/Login.css";
 import { useState } from "react";
 import { useAuth } from "../services/auth/authContext";
-import { captureEvent } from "../services/analytics/posthogAnalytics";
+import { captureEvent, identify } from "../services/analytics/posthogAnalytics";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -23,11 +23,16 @@ const Login: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
+      await captureEvent("user.login.attempt", { email });
       await login(email, password);
-      await captureEvent("user_login_success", { email });
+      await captureEvent("user.login.success", { email });
+      await identify(email);
       history.push("/home");
     } catch (error) {
-      await captureEvent("user_login_error", { error: error.message });
+      await captureEvent("user.login.error", {
+        error:
+          error instanceof Error ? error.message : "Malformed error object!",
+      });
       setError(
         error instanceof Error
           ? error.message

@@ -1,8 +1,9 @@
-import { IonContent, IonPage } from "@ionic/react";
+import { IonContent, IonPage, useIonViewDidEnter } from "@ionic/react";
 import { useState } from "react";
 import ArticleBackground from "../components/pages/article/Background";
 import ArticleHeader from "../components/pages/article/Header";
 import "./styles/Article.css";
+import { pageCaptureEvent } from "../services/analytics/posthogAnalytics";
 
 const Article: React.FC = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -11,6 +12,10 @@ const Article: React.FC = () => {
   const handleScroll = (event: CustomEvent) => {
     setScrollY(event.detail.scrollTop);
   };
+
+  useIonViewDidEnter(() => {
+    pageCaptureEvent();
+  });
 
   return (
     <IonPage>
