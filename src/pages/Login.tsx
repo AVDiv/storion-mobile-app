@@ -4,12 +4,19 @@ import {
   IonInput,
   IonButton,
   IonToast,
+  useIonViewDidEnter,
+  useIonViewDidLeave,
 } from "@ionic/react";
 import { Link, useHistory } from "react-router-dom";
 import "./styles/Login.css";
 import { useState } from "react";
 import { useAuth } from "../services/auth/authContext";
-import { captureEvent, identify } from "../services/analytics/posthogAnalytics";
+import {
+  captureEvent,
+  identify,
+  pageleaveCaptureEvent,
+  pageviewCaptureEvent,
+} from "../services/analytics/posthogAnalytics";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -26,7 +33,7 @@ const Login: React.FC = () => {
       await captureEvent("user.login.attempt", { email });
       await login(email, password);
       await captureEvent("user.login.success", { email });
-      await identify(email);
+      await await identify(email);
       history.push("/home");
     } catch (error) {
       await captureEvent("user.login.error", {
@@ -42,6 +49,14 @@ const Login: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  useIonViewDidEnter(() => {
+    pageviewCaptureEvent();
+  });
+
+  useIonViewDidLeave(() => {
+    pageleaveCaptureEvent();
+  });
 
   return (
     <IonPage className="auth-page">

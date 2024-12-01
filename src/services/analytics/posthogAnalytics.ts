@@ -36,10 +36,24 @@ export const identify = async (
   }
 };
 
-export const pageCaptureEvent = async () => {
+export const pageviewCaptureEvent = async () => {
   try {
     await Posthog.capture({
       event: "$pageview",
+      properties: {
+        $current_url: window.location.href,
+        $title: document.title,
+      },
+    });
+  } catch (error) {
+    console.error("Failed to capture page event:", error);
+  }
+};
+
+export const pageleaveCaptureEvent = async () => {
+  try {
+    await Posthog.capture({
+      event: "$pageleave",
       properties: {
         $current_url: window.location.href,
         $title: document.title,

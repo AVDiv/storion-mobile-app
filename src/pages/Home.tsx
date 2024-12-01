@@ -5,6 +5,7 @@ import {
   IonTitle,
   IonToolbar,
   useIonViewDidEnter,
+  useIonViewDidLeave,
 } from "@ionic/react";
 
 import Header from "../components/pages/home/Header";
@@ -14,7 +15,10 @@ import Background from "../components/utils/Background/GradientBackground";
 import { useState } from "react";
 import FeedBody from "../components/pages/home/FeedBody";
 import FilterBody from "../components/pages/home/FilterBody";
-import { pageCaptureEvent } from "../services/analytics/posthogAnalytics";
+import {
+  pageleaveCaptureEvent,
+  pageviewCaptureEvent,
+} from "../services/analytics/posthogAnalytics";
 
 const Home: React.FC = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -24,9 +28,12 @@ const Home: React.FC = () => {
   };
 
   useIonViewDidEnter(() => {
-    pageCaptureEvent();
+    pageviewCaptureEvent();
   });
 
+  useIonViewDidLeave(() => {
+    pageleaveCaptureEvent();
+  });
   return (
     <IonPage>
       <Header isTranslucent={scrollY > 50} />
