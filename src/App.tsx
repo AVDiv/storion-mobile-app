@@ -43,6 +43,9 @@ import "@ionic/react/css/palettes/dark.class.css";
 import "./theme/global.css";
 import "./theme/variables.css";
 import Search from "./pages/Search";
+import { AuthProvider } from "./services/auth/authContext";
+import PrivateRoute from "./components/utils/function/PrivateRoute";
+import { initializePostHog } from "./services/analytics/posthogAnalytics";
 
 setupIonicReact({
   mode: "md",
@@ -51,50 +54,55 @@ setupIonicReact({
   statusTap: true,
 });
 
+// Initialize PostHog
+initializePostHog();
+
 const App: React.FC = () => (
   <IonApp>
-    <IonReactRouter>
-      <Switch>
-        {/* Auth routes without tabs */}
-        <Route exact path="/login" component={Login} />
-        <Route exact path="/signup" component={Signup} />
+    <AuthProvider>
+      <IonReactRouter>
+        <Switch>
+          {/* Public routes */}
+          <Route exact path="/login" component={Login} />
+          <Route exact path="/signup" component={Signup} />
 
-        {/* Main app routes with tabs */}
-        <Route>
-          <IonTabs>
-            <IonRouterOutlet>
-              <Route exact path="/">
-                <Redirect to="/home" />
-              </Route>
-              <Route exact path="/home" component={Home} />
-              <Route exact path="/search" component={Search} />
-              <Route exact path="/article/:id" component={Article} />
-            </IonRouterOutlet>
+          {/* Protected routes */}
+          <Route>
+            <IonTabs>
+              <IonRouterOutlet>
+                <Route exact path="/">
+                  <Redirect to="/home" />
+                </Route>
+                <PrivateRoute exact path="/home" component={Home} />
+                <PrivateRoute exact path="/search" component={Search} />
+                <PrivateRoute exact path="/article/:id" component={Article} />
+              </IonRouterOutlet>
 
-            <IonTabBar slot="bottom">
-              <IonTabButton tab="home" layout="icon-start" href="/home">
-                <HomeIcon />
-                <IonLabel>Home</IonLabel>
-              </IonTabButton>
+              <IonTabBar slot="bottom">
+                <IonTabButton tab="home" layout="icon-start" href="/home">
+                  <HomeIcon />
+                  <IonLabel>Home</IonLabel>
+                </IonTabButton>
 
-              <IonTabButton tab="search" layout="icon-start" href="/search">
-                <SearchIcon />
-                <IonLabel>Search</IonLabel>
-              </IonTabButton>
+                <IonTabButton tab="search" layout="icon-start" href="/search">
+                  <SearchIcon />
+                  <IonLabel>Search</IonLabel>
+                </IonTabButton>
 
-              <IonTabButton tab="unknown" layout="icon-start" href="/#">
-                <IonLabel>Unknown</IonLabel>
-              </IonTabButton>
+                <IonTabButton tab="unknown" layout="icon-start" href="/#">
+                  <IonLabel>Unknown</IonLabel>
+                </IonTabButton>
 
-              <IonTabButton tab="profile" layout="icon-start" href="/profile">
-                <UserIcon />
-                <IonLabel>Profile</IonLabel>
-              </IonTabButton>
-            </IonTabBar>
-          </IonTabs>
-        </Route>
-      </Switch>
-    </IonReactRouter>
+                <IonTabButton tab="profile" layout="icon-start" href="/profile">
+                  <UserIcon />
+                  <IonLabel>Profile</IonLabel>
+                </IonTabButton>
+              </IonTabBar>
+            </IonTabs>
+          </Route>
+        </Switch>
+      </IonReactRouter>
+    </AuthProvider>
   </IonApp>
 );
 

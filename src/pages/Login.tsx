@@ -1,14 +1,41 @@
-import { IonContent, IonPage, IonInput, IonButton } from "@ionic/react";
-import { Link } from "react-router-dom";
+import {
+  IonContent,
+  IonPage,
+  IonInput,
+  IonButton,
+  IonToast,
+} from "@ionic/react";
+import { Link, useHistory } from "react-router-dom";
 import "./styles/Login.css";
 import { useState } from "react";
+import { useAuth } from "../services/auth/authContext";
+import { captureEvent } from "../services/analytics/posthogAnalytics";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { login } = useAuth();
+  const history = useHistory();
 
-  const handleLogin = () => {
-    // Handle login logic here
+  const handleLogin = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await login(email, password);
+      await captureEvent("user_login_success", { email });
+      history.push("/home");
+    } catch (error) {
+      await captureEvent("user_login_error", { error: error.message });
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Login failed. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -43,8 +70,9 @@ const Login: React.FC = () => {
               expand="block"
               onClick={handleLogin}
               className="auth-button"
+              disabled={isLoading}
             >
-              Login
+              {isLoading ? "Logging in..." : "Login"}
             </IonButton>
 
             <p className="auth-redirect">
@@ -53,6 +81,14 @@ const Login: React.FC = () => {
           </div>
         </div>
       </IonContent>
+      <IonToast
+        isOpen={!!error}
+        message={error || ""}
+        duration={3000}
+        position="top"
+        color="danger"
+        onDidDismiss={() => setError(null)}
+      />
     </IonPage>
   );
 };
