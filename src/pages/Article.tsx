@@ -9,8 +9,8 @@ import ArticleBackground from "../components/pages/article/Background";
 import ArticleHeader from "../components/pages/article/Header";
 import "./styles/Article.css";
 import {
-  pageleaveCaptureEvent,
-  pageviewCaptureEvent,
+  posthogPageleaveCaptureEvent,
+  posthogPageviewCaptureEvent,
 } from "../services/analytics/posthogAnalytics";
 
 const Article: React.FC = () => {
@@ -22,11 +22,11 @@ const Article: React.FC = () => {
   };
 
   useIonViewDidEnter(() => {
-    pageviewCaptureEvent();
+    posthogPageviewCaptureEvent();
   });
 
   useIonViewDidLeave(() => {
-    pageleaveCaptureEvent();
+    posthogPageleaveCaptureEvent();
   });
 
   return (

@@ -16,8 +16,8 @@ import { useState } from "react";
 import FeedBody from "../components/pages/home/FeedBody";
 import FilterBody from "../components/pages/home/FilterBody";
 import {
-  pageleaveCaptureEvent,
-  pageviewCaptureEvent,
+  posthogPageleaveCaptureEvent,
+  posthogPageviewCaptureEvent,
 } from "../services/analytics/posthogAnalytics";
 
 const Home: React.FC = () => {
@@ -28,11 +28,11 @@ const Home: React.FC = () => {
   };
 
   useIonViewDidEnter(() => {
-    pageviewCaptureEvent();
+    posthogPageviewCaptureEvent();
   });
 
   useIonViewDidLeave(() => {
-    pageleaveCaptureEvent();
+    posthogPageleaveCaptureEvent();
   });
   return (
     <IonPage>

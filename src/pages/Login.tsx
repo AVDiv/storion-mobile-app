@@ -12,10 +12,10 @@ import "./styles/Login.css";
 import { useState } from "react";
 import { useAuth } from "../services/auth/authContext";
 import {
-  captureEvent,
-  identify,
-  pageleaveCaptureEvent,
-  pageviewCaptureEvent,
+  posthogCaptureEvent,
+  posthogIdentify,
+  posthogPageleaveCaptureEvent,
+  posthogPageviewCaptureEvent,
 } from "../services/analytics/posthogAnalytics";
 
 const Login: React.FC = () => {
@@ -30,13 +30,13 @@ const Login: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      await captureEvent("user.login.attempt", { email });
+      await posthogCaptureEvent("user.login.attempt", { email });
       await login(email, password);
-      await captureEvent("user.login.success", { email });
-      await await identify(email);
+      await posthogCaptureEvent("user.login.success", { email });
+      await await posthogIdentify(email);
       history.push("/home");
     } catch (error) {
-      await captureEvent("user.login.error", {
+      await posthogCaptureEvent("user.login.error", {
         error:
           error instanceof Error ? error.message : "Malformed error object!",
       });
@@ -51,11 +51,11 @@ const Login: React.FC = () => {
   };
 
   useIonViewDidEnter(() => {
-    pageviewCaptureEvent();
+    posthogPageviewCaptureEvent();
   });
 
   useIonViewDidLeave(() => {
-    pageleaveCaptureEvent();
+    posthogPageleaveCaptureEvent();
   });
 
   return (

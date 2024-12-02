@@ -14,7 +14,7 @@ export const initializePostHog = async () => {
   }
 };
 
-export const captureEvent = async (
+export const posthogCaptureEvent = async (
   eventName: string,
   properties?: Record<string, any>
 ) => {
@@ -25,7 +25,7 @@ export const captureEvent = async (
   }
 };
 
-export const identify = async (
+export const posthogIdentify = async (
   distinctId: string,
   userProperties?: Record<string, any>
 ) => {
@@ -36,7 +36,15 @@ export const identify = async (
   }
 };
 
-export const pageviewCaptureEvent = async () => {
+export const posthogAlias = async (alias: string) => {
+  try {
+    await Posthog.alias({ alias });
+  } catch (error) {
+    console.error("Failed to alias user:", error);
+  }
+};
+
+export const posthogPageviewCaptureEvent = async () => {
   try {
     await Posthog.capture({
       event: "$pageview",
@@ -50,7 +58,7 @@ export const pageviewCaptureEvent = async () => {
   }
 };
 
-export const pageleaveCaptureEvent = async () => {
+export const posthogPageleaveCaptureEvent = async () => {
   try {
     await Posthog.capture({
       event: "$pageleave",
@@ -64,7 +72,7 @@ export const pageleaveCaptureEvent = async () => {
   }
 };
 
-export const reset = async () => {
+export const posthogReset = async () => {
   try {
     await Posthog.reset();
   } catch (error) {
