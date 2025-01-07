@@ -85,6 +85,13 @@
   --ion-background-color-step-850: #47415d;
   --ion-background-color-step-900: #3c3653;
   --ion-background-color-step-950: #312b4a;
+
+  /* Overriding the default colors */
+  --ion-color-primary: var(--color-primary);
+  --ion-color-primary-rgb: var(--color-primary-rgb);
+
+  --ion-text-color: var(--color-dark-primary);
+  --ion-text-color-rgb: var(--color-dark-primary-rgb);
 }
 
 .ion-palette-dark.ios,
@@ -137,4 +144,8 @@
   --ion-background-color-step-850: #dedee2;
   --ion-background-color-step-900: #e9e9ec;
   --ion-background-color-step-950: #f4f4f5;
+
+  /* Overriding the default colors */
+  --ion-color-primary: var(--color-dark-primary);
+  --ion-color-primary-rgb: var(--color-dark-primary-rgb);
 }
