@@ -1,6 +1,7 @@
 {
-  "name": "ionic-app-base",
-  "app_id": "",
-  "type": "react-vite",
-  "integrations": {}
+  "name": "storion-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
 }
