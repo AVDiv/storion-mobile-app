@@ -6,7 +6,11 @@ import {
   IonToast,
   useIonViewDidEnter,
   useIonViewDidLeave,
+  IonItem,
+  IonInputPasswordToggle,
 } from "@ionic/react";
+import { Mail as MailIcon, Lock as LockIcon } from "iconoir-react";
+
 import { Link, useHistory } from "react-router-dom";
 import "./styles/Login.css";
 import { useState } from "react";
@@ -50,6 +54,13 @@ const Login: React.FC = () => {
     }
   };
 
+  const handlePasswordChange = (event: CustomEvent) => {
+    const newValue = event.detail.value ?? "";
+    if (newValue !== password) {
+      setPassword(newValue);
+    }
+  };
+
   useIonViewDidEnter(() => {
     posthogPageviewCaptureEvent();
   });
@@ -67,7 +78,8 @@ const Login: React.FC = () => {
           <p className="auth-subtitle">Continue your journey with us</p>
 
           <div className="auth-form">
-            <div className="input-group">
+            <IonItem lines="none">
+              <MailIcon className="input-icon" />
               <IonInput
                 type="email"
                 placeholder="Email"
@@ -75,16 +87,19 @@ const Login: React.FC = () => {
                 onIonChange={(e) => setEmail(e.detail.value!)}
                 className="auth-input"
               />
-            </div>
-            <div className="input-group">
+            </IonItem>
+            <IonItem lines="none">
+              <LockIcon className="input-icon" />
               <IonInput
                 type="password"
                 placeholder="Password"
                 value={password}
-                onIonChange={(e) => setPassword(e.detail.value!)}
+                onIonInput={handlePasswordChange}
                 className="auth-input"
-              />
-            </div>
+              >
+                <IonInputPasswordToggle slot="end" />
+              </IonInput>
+            </IonItem>
 
             <IonButton
               expand="block"

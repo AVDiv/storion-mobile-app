@@ -1,15 +1,86 @@
-import { IonContent, IonPage, IonInput, IonButton } from "@ionic/react";
-import { Link } from "react-router-dom";
+import {
+  IonContent,
+  IonPage,
+  IonInput,
+  IonButton,
+  IonItem,
+  IonInputPasswordToggle,
+  IonToast,
+  useIonViewDidEnter,
+  useIonViewDidLeave,
+} from "@ionic/react";
+import { Link, useHistory } from "react-router-dom";
 import "./styles/Signup.css";
 import { useState } from "react";
+import {
+  Lock as LockIcon,
+  Mail as MailIcon,
+  User as UserIcon,
+} from "iconoir-react";
+import { useAuth } from "../services/auth/authContext";
+import {
+  posthogCaptureEvent,
+  posthogIdentify,
+  posthogPageleaveCaptureEvent,
+  posthogPageviewCaptureEvent,
+} from "../services/analytics/posthogAnalytics";
+import PasswordChecklist from "../components/PasswordChecklist";
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastStatus, setToastStatus] = useState<string | null>(null);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const { signup } = useAuth();
+  const history = useHistory();
 
-  const handleSignup = () => {
-    // Handle signup logic here
+  const handleSignup = async () => {
+    if (!isPasswordValid) return;
+    setIsLoading(true);
+    setToastMessage(null);
+    setToastStatus(null);
+    try {
+      await posthogCaptureEvent("user.signup.attempt", { email, name });
+      const message =
+        (await signup(email, password, name)) || "Signup successful!";
+      setToastMessage(message);
+      setToastStatus("success");
+      await posthogCaptureEvent("user.signup.success", { email, name });
+      await posthogIdentify(email);
+      history.push("/home");
+    } catch (error) {
+      await posthogCaptureEvent("user.signup.error", {
+        error:
+          error instanceof Error ? error.message : "Malformed error object!",
+      });
+      setToastMessage(
+        error instanceof Error
+          ? error.message
+          : "Signup failed. Please try again."
+      );
+      setToastStatus("danger");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handlePasswordChange = (event: CustomEvent) => {
+    const newValue = event.detail.value ?? "";
+    if (event.detail.value !== undefined && newValue !== password) {
+      setPassword(newValue);
+    }
+  };
+
+  useIonViewDidEnter(() => {
+    posthogPageviewCaptureEvent();
+  });
+
+  useIonViewDidLeave(() => {
+    posthogPageleaveCaptureEvent();
+  });
 
   return (
     <IonPage className="auth-page">
@@ -20,7 +91,18 @@ const Signup: React.FC = () => {
           <p className="auth-subtitle">Start your journey with us</p>
 
           <div className="auth-form">
-            <div className="input-group">
+            <IonItem lines="none">
+              <UserIcon className="input-icon" />
+              <IonInput
+                type="text"
+                placeholder="Full Name"
+                value={name}
+                onIonChange={(e) => setName(e.detail.value!)}
+                className="auth-input"
+              />
+            </IonItem>
+            <IonItem lines="none">
+              <MailIcon className="input-icon" />
               <IonInput
                 type="email"
                 placeholder="Email"
@@ -28,23 +110,31 @@ const Signup: React.FC = () => {
                 onIonChange={(e) => setEmail(e.detail.value!)}
                 className="auth-input"
               />
-            </div>
-            <div className="input-group">
+            </IonItem>
+            <IonItem lines="none">
+              <LockIcon className="input-icon" />
               <IonInput
                 type="password"
                 placeholder="Password"
                 value={password}
-                onIonChange={(e) => setPassword(e.detail.value!)}
+                onIonInput={handlePasswordChange}
                 className="auth-input"
-              />
-            </div>
+              >
+                <IonInputPasswordToggle slot="end" />
+              </IonInput>
+            </IonItem>
+            <PasswordChecklist
+              password={password}
+              onValidationChange={setIsPasswordValid}
+            />
 
             <IonButton
               expand="block"
               onClick={handleSignup}
               className="auth-button"
+              disabled={isLoading || !isPasswordValid}
             >
-              Sign up
+              {isLoading ? "Creating account..." : "Create account"}
             </IonButton>
 
             <p className="auth-redirect">
@@ -53,6 +143,17 @@ const Signup: React.FC = () => {
           </div>
         </div>
       </IonContent>
+      <IonToast
+        isOpen={!!toastMessage}
+        message={toastMessage || ""}
+        duration={3000}
+        position="top"
+        color={toastStatus || "danger"}
+        onDidDismiss={() => {
+          setToastMessage(null);
+          setToastStatus(null);
+        }}
+      />
     </IonPage>
   );
 };

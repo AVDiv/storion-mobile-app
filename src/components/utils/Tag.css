@@ -1,12 +1,12 @@
 .tag {
-  background-color: #FFFFFF8F;
+  background-color: #ffffff8f;
   backdrop-filter: blur(10px);
   color: var(--color-dark-primary);
   padding: 5px 10px;
   border-radius: 25px;
   margin-bottom: 5px;
   display: inline-block;
-  transition: all 0.3s;/
+  transition: all 0.3s;
 }
 
 .tag .tag-indicator {

@@ -8,6 +8,11 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  signup: (
+    email: string,
+    password: string,
+    name: string
+  ) => Promise<string | void>;
   isLoading: boolean;
   isAuthenticated: boolean;
 }
@@ -57,12 +62,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error(
           "Oops! That email or password doesn’t seem right. Try again!"
         );
+      else if (response.status === 403)
+        throw new Error(
+          "Your account is disabled. Please contact support for assistance."
+        );
       else throw new Error("Oops! We couldn’t log you in.");
     }
 
     const tokens: AuthTokens = await response.json();
     await TokenStorage.saveTokens(tokens);
-    console.log(tokens);
     await fetchUser(tokens.access_token);
   };
 
@@ -87,6 +95,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setUser(userData);
   };
 
+  const signup = async (
+    email: string,
+    password: string,
+    name: string
+  ): Promise<string | void> => {
+    const response = await fetch(`${AppConfig.BACKEND_HOST}/auth/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password, name }),
+    });
+
+    if (!response.ok) {
+      if (response.status >= 500) {
+        throw new Error(
+          "Oops! Our server is taking a coffee break. ☕️ Please try again in a few moments!"
+        );
+      } else if (response.status === 409) {
+        throw new Error(
+          "This email is already registered. Try logging in instead!"
+        );
+      } else if (response.status === 400) {
+        throw new Error(
+          "Please check your email and password format and try again."
+        );
+      } else {
+        throw new Error(
+          "Something went wrong during signup. Please try again."
+        );
+      }
+    }
+
+    return response.text();
+  };
+
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -98,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             try {
               const newTokens = await refreshAccessToken(tokens.refreshToken);
               await TokenStorage.saveTokens(newTokens);
-              await fetchUser(newTokens.accessToken);
+              await fetchUser(newTokens.access_token);
             } catch (refreshError) {
               await logout();
             }
@@ -122,6 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         logout,
         isLoading,
         isAuthenticated: !!user,
+        signup,
       }}
     >
       {children}
