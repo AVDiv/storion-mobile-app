@@ -1,9 +1,24 @@
 import { Posthog } from "@capawesome/capacitor-posthog";
+import { storageService } from "../storage/storageService";
 
 const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST;
 const POSTHOG_API_KEY = import.meta.env.VITE_POSTHOG_API_KEY;
+const TELEMETRY_ENABLED_KEY = "telemetry_enabled" as const;
+
+export const isTelemetryEnabled = async (): Promise<boolean> => {
+  const stored = await storageService.get<boolean>(TELEMETRY_ENABLED_KEY);
+  return stored ?? true;
+};
+
+export const setTelemetryEnabled = async (enabled: boolean): Promise<void> => {
+  await storageService.set(TELEMETRY_ENABLED_KEY, enabled);
+  if (!enabled) {
+    await posthogReset();
+  }
+};
 
 export const initializePostHog = async () => {
+  if (!(await isTelemetryEnabled())) return;
   try {
     Posthog.setup({
       host: POSTHOG_HOST,
@@ -18,6 +33,7 @@ export const posthogCaptureEvent = async (
   eventName: string,
   properties?: Record<string, any>
 ) => {
+  if (!(await isTelemetryEnabled())) return;
   try {
     await Posthog.capture({ event: eventName, properties });
   } catch (error) {
@@ -29,6 +45,7 @@ export const posthogIdentify = async (
   distinctId: string,
   userProperties?: Record<string, any>
 ) => {
+  if (!(await isTelemetryEnabled())) return;
   try {
     await Posthog.identify({ distinctId, userProperties });
   } catch (error) {
@@ -37,6 +54,7 @@ export const posthogIdentify = async (
 };
 
 export const posthogAlias = async (alias: string) => {
+  if (!(await isTelemetryEnabled())) return;
   try {
     await Posthog.alias({ alias });
   } catch (error) {
@@ -45,6 +63,7 @@ export const posthogAlias = async (alias: string) => {
 };
 
 export const posthogPageviewCaptureEvent = async () => {
+  if (!(await isTelemetryEnabled())) return;
   try {
     await Posthog.capture({
       event: "$pageview",
@@ -59,6 +78,7 @@ export const posthogPageviewCaptureEvent = async () => {
 };
 
 export const posthogPageleaveCaptureEvent = async () => {
+  if (!(await isTelemetryEnabled())) return;
   try {
     await Posthog.capture({
       event: "$pageleave",
