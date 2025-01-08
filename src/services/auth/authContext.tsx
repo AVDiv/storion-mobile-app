@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { TokenStorage } from "../storage";
+import { storageService } from "../storage/storageService";
 import { AuthTokens, User } from "../../types";
 import { AppConfig } from "../../app.config";
 import { useHistory } from "react-router-dom";
+import { StorageKey } from "../storage/config";
 
 interface AuthContextType {
   user: User | null;
@@ -70,12 +71,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     const tokens: AuthTokens = await response.json();
-    await TokenStorage.saveTokens(tokens);
+    await storageService.set("auth_tokens" as StorageKey, tokens);
     await fetchUser(tokens.access_token);
   };
 
   const logout = async () => {
-    await TokenStorage.removeTokens();
+    await storageService.remove("auth_tokens" as StorageKey);
     setUser(null);
     history.push("/login");
   };
@@ -134,14 +135,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const tokens = await TokenStorage.getTokens();
+        const tokens = await storageService.get<AuthTokens>(
+          "auth_tokens" as StorageKey
+        );
         if (tokens) {
           try {
-            await fetchUser(tokens.accessToken);
+            await fetchUser(tokens.access_token);
           } catch (error) {
             try {
-              const newTokens = await refreshAccessToken(tokens.refreshToken);
-              await TokenStorage.saveTokens(newTokens);
+              const newTokens = await refreshAccessToken(tokens.refresh_token);
+              await storageService.set("auth_tokens" as StorageKey, newTokens);
               await fetchUser(newTokens.access_token);
             } catch (refreshError) {
               await logout();
