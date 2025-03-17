@@ -1,1 +1,1 @@
-export * from "./tokenStorage";
+export * from "./storageService";
