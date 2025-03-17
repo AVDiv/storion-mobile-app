@@ -31,7 +31,7 @@ const Article: React.FC = () => {
 
   return (
     <IonPage>
-      <ArticleBackground scrollY={scrollY} />
+      {/* <ArticleBackground scrollY={scrollY} /> */}
       <ArticleHeader
         title={title}
         isTranslucent={scrollY > 50}

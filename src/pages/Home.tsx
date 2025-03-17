@@ -37,7 +37,7 @@ const Home: React.FC = () => {
   return (
     <IonPage>
       <Header isTranslucent={scrollY > 50} />
-      <Background scrollY={scrollY} />
+      {/* <Background scrollY={scrollY} /> */}
       <IonContent fullscreen scrollEvents={true} onIonScroll={handleScroll}>
         <FilterBody />
         <FeedBody />
