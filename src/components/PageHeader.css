@@ -1,0 +1,51 @@
+.page-header ion-toolbar {
+  --background: rgba(var(--ion-background-color-rgb), 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
+}
+
+.page-title {
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.notification-btn {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--ion-color-danger);
+  border-radius: 50%;
+}
+
+.header-searchbar {
+  --box-shadow: none;
+  --background: var(--ion-background-color);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+ion-header.md ion-toolbar:last-of-type {
+  --border-width: 0 0 1px 0;
+}
+
+/* Animation for search transition */
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.header-searchbar {
+  animation: slideIn 0.2s ease-out forwards;
+}

@@ -84,14 +84,26 @@ const Signup: React.FC = () => {
 
   return (
     <IonPage className="auth-page">
-      <div className="auth-background" />
-      <IonContent fullscreen>
+      <div className="auth-background">
+        <div className="auth-decoration"></div>
+      </div>
+      <IonContent fullscreen className="ion-padding auth-content">
         <div className="auth-container">
-          <h1>Create Account</h1>
-          <p className="auth-subtitle">Start your journey with us</p>
+          <div className="auth-header">
+            <div className="logo-container">
+              <div className="app-logo">
+                <div className="logo-icon">S</div>
+              </div>
+            </div>
+
+            <h1>Create Account</h1>
+            <p className="auth-subtitle">Start your journey with us</p>
+          </div>
 
           <div className="auth-form">
-            <IonItem lines="none">
+            <div className="form-header">Sign up for free</div>
+
+            <IonItem lines="none" className="auth-item">
               <UserIcon className="input-icon" />
               <IonInput
                 type="text"
@@ -101,7 +113,8 @@ const Signup: React.FC = () => {
                 className="auth-input"
               />
             </IonItem>
-            <IonItem lines="none">
+
+            <IonItem lines="none" className="auth-item">
               <MailIcon className="input-icon" />
               <IonInput
                 type="email"
@@ -111,7 +124,8 @@ const Signup: React.FC = () => {
                 className="auth-input"
               />
             </IonItem>
-            <IonItem lines="none">
+
+            <IonItem lines="none" className="auth-item">
               <LockIcon className="input-icon" />
               <IonInput
                 type="password"
@@ -123,10 +137,13 @@ const Signup: React.FC = () => {
                 <IonInputPasswordToggle slot="end" />
               </IonInput>
             </IonItem>
-            <PasswordChecklist
-              password={password}
-              onValidationChange={setIsPasswordValid}
-            />
+
+            <div className="password-requirements">
+              <PasswordChecklist
+                password={password}
+                onValidationChange={setIsPasswordValid}
+              />
+            </div>
 
             <IonButton
               expand="block"
@@ -134,8 +151,19 @@ const Signup: React.FC = () => {
               className="auth-button"
               disabled={isLoading || !isPasswordValid}
             >
-              {isLoading ? "Creating account..." : "Create account"}
+              {isLoading ? (
+                <div className="loading-container">
+                  <div className="button-spinner"></div>
+                  <span>Creating account...</span>
+                </div>
+              ) : (
+                "Create account"
+              )}
             </IonButton>
+
+            <div className="divider">
+              <span>OR</span>
+            </div>
 
             <p className="auth-redirect">
               Already have an account? <Link to="/login">Login</Link>

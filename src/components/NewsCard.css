@@ -1,0 +1,80 @@
+.news-card {
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.news-card-image-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.news-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.news-card:hover .news-card-image {
+  transform: scale(1.05);
+}
+
+.news-card-category-chip {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  font-weight: 500;
+  font-size: 12px;
+  --background: rgba(var(--ion-color-primary-rgb), 0.9);
+  backdrop-filter: blur(4px);
+}
+
+.news-card-source {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: var(--ion-color-medium);
+}
+
+.news-card-date {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+}
+
+.news-card-date ion-icon {
+  margin-right: 4px;
+  font-size: 14px;
+}
+
+.news-card-excerpt {
+  margin-bottom: 16px;
+  color: var(--ion-color-step-650);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.news-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ion-color-light-shade);
+}
+
+.action-button {
+  font-size: 12px;
+}
+
+.read-more-button {
+  margin-left: auto;
+  font-weight: 500;
+}

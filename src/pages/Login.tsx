@@ -71,14 +71,26 @@ const Login: React.FC = () => {
 
   return (
     <IonPage className="auth-page">
-      <div className="auth-background" />
-      <IonContent fullscreen>
+      <div className="auth-background">
+        <div className="auth-decoration"></div>
+      </div>
+      <IonContent fullscreen className="ion-padding auth-content">
         <div className="auth-container">
-          <h1>Welcome Back</h1>
-          <p className="auth-subtitle">Continue your journey with us</p>
+          <div className="auth-header">
+            <div className="logo-container">
+              <div className="app-logo">
+                <div className="logo-icon">S</div>
+              </div>
+            </div>
+
+            <h1>Welcome Back</h1>
+            <p className="auth-subtitle">Continue your journey with us</p>
+          </div>
 
           <div className="auth-form">
-            <IonItem lines="none">
+            <div className="form-header">Login to your account</div>
+
+            <IonItem lines="none" className="auth-item">
               <MailIcon className="input-icon" />
               <IonInput
                 type="email"
@@ -88,7 +100,8 @@ const Login: React.FC = () => {
                 className="auth-input"
               />
             </IonItem>
-            <IonItem lines="none">
+
+            <IonItem lines="none" className="auth-item">
               <LockIcon className="input-icon" />
               <IonInput
                 type="password"
@@ -101,14 +114,29 @@ const Login: React.FC = () => {
               </IonInput>
             </IonItem>
 
+            <div className="forgot-password">
+              <Link to="/forgot-password">Forgot Password?</Link>
+            </div>
+
             <IonButton
               expand="block"
               onClick={handleLogin}
               className="auth-button"
               disabled={isLoading}
             >
-              {isLoading ? "Logging in..." : "Login"}
+              {isLoading ? (
+                <div className="loading-container">
+                  <div className="button-spinner"></div>
+                  <span>Logging in...</span>
+                </div>
+              ) : (
+                "Login"
+              )}
             </IonButton>
+
+            <div className="divider">
+              <span>OR</span>
+            </div>
 
             <p className="auth-redirect">
               Don't have an account? <Link to="/signup">Sign up</Link>

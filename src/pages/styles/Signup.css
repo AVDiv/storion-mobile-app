@@ -1,6 +1,76 @@
+/* Import common auth styles */
+@import "./Login.css";
+
 .signup-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px;
+}
+
+/* Signup-specific overrides */
+.password-requirements {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px; /* Increased from 8px */
+  padding: 16px 20px; /* Increased from 12px 16px */
+  margin-bottom: 30px; /* Increased from 24px */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Light mode overrides for signup page */
+@media (prefers-color-scheme: light) {
+  .password-requirements {
+    background: rgba(var(--color-primary-rgb), 0.03);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.08);
+    box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.04);
+  }
+}
+
+.auth-form .requirement {
+  margin: 8px 0; /* Increased from 6px 0 */
+}
+
+/* Override for password checklist specific to signup page */
+.auth-form .password-checklist {
+  margin: 0;
+}
+
+.auth-form .password-checklist .requirement {
+  font-size: 13px;
+}
+
+.auth-form .password-checklist .check-icon,
+.auth-form .password-checklist .cancel-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* Add slight margin above the signup button */
+.auth-form .auth-button {
+  margin-top: 12px;
+}
+
+/* Responsive adjustments for signup page */
+@media (min-width: 768px) {
+  .password-requirements {
+    padding: 20px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .password-requirements {
+    padding: 14px 18px;
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 370px) {
+  .auth-form .password-checklist .requirement {
+    font-size: 12px;
+  }
+
+  .password-requirements {
+    padding: 10px 12px;
+  }
 }
