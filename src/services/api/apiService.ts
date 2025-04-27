@@ -4,6 +4,7 @@ import { tokenService } from "../auth/tokenService";
 interface ApiOptions extends RequestInit {
   requiresAuth?: boolean;
   skipRefresh?: boolean;
+  expectedResponseType?: "json" | "text"; // Add option to specify expected response type
 }
 
 /**
@@ -49,13 +50,14 @@ class ApiService {
   /**
    * Execute API request with authentication and refresh handling
    */
-  public async fetch<T = any>(
+  public async fetch<T>(
     endpoint: string,
     options: ApiOptions = {}
   ): Promise<T> {
     const {
       requiresAuth = true,
       skipRefresh = false,
+      expectedResponseType = "json", // Default to JSON responses
       ...fetchOptions
     } = options;
 
@@ -113,15 +115,51 @@ class ApiService {
 
       // Handle other error responses
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        console.error(`API request failed: ${endpoint}`, response);
+
+        // Try to extract error message from response based on content type
+        const contentType = response.headers.get("content-type");
+
+        if (contentType && contentType.includes("application/json")) {
+          try {
+            const errorData = await response.clone().json();
+            if (errorData && errorData.message) {
+              throw new Error(errorData.message);
+            } else if (errorData && errorData.error) {
+              throw new Error(errorData.error);
+            }
+          } catch (parseError) {
+            console.warn("Failed to parse error response as JSON", parseError);
+          }
+        } else {
+          try {
+            const errorText = await response.clone().text();
+            if (errorText) {
+              throw new Error(errorText);
+            }
+          } catch (textError) {
+            console.warn("Failed to parse error response as text", textError);
+          }
+        }
+
+        throw response;
       }
 
-      // For empty responses or those that shouldn't be parsed as JSON
       if (response.status === 204 || fetchOptions.method === "DELETE") {
         return {} as T;
       }
 
-      return await response.json();
+      const contentType = response.headers.get("content-type");
+
+      if (
+        expectedResponseType === "text" ||
+        (contentType && !contentType.includes("application/json"))
+      ) {
+        const text = await response.text();
+        return text as unknown as T;
+      } else {
+        return (await response.json()) as T;
+      }
     } catch (error) {
       console.error(`API request failed: ${endpoint}`, error);
       throw error;

@@ -1,9 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "../../types";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { apiService } from "../api/apiService";
 import { tokenService } from "./tokenService";
 import { IonToast } from "@ionic/react";
+
+interface OnboardingData {
+  description: string;
+  topics: string[];
+  trackingConsent: boolean;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -14,8 +20,13 @@ interface AuthContextType {
     password: string,
     name: string
   ) => Promise<string | void>;
+  completeOnboarding: (data: OnboardingData) => Promise<void>;
+  checkOnboardingStatus: () => Promise<boolean>;
+  getOnboardingData: () => Promise<OnboardingData | null>;
   isLoading: boolean;
   isAuthenticated: boolean;
+  needsOnboarding: boolean;
+  setNeedsOnboarding: (value: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,8 +36,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [securityAlert, setSecurityAlert] = useState<string | null>(null);
   const history = useHistory();
+
+  // Check if a user needs to complete onboarding
+  const checkOnboardingStatus = async (): Promise<boolean> => {
+    try {
+      const response = await apiService.get("/onboarding/status");
+      return !response.completed;
+    } catch (error) {
+      console.error("Failed to check onboarding status:", error);
+      return false;
+    }
+  };
+
+  // Get current onboarding data if any
+  const getOnboardingData = async (): Promise<OnboardingData | null> => {
+    try {
+      const data = await apiService.get("/onboarding");
+      return {
+        description: data.description || "",
+        topics: data.topics || [],
+        trackingConsent: data.trackingConsent || false,
+      };
+    } catch (error) {
+      console.error("Failed to get onboarding data:", error);
+      return null;
+    }
+  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -37,6 +75,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       );
       tokenService.setTokens(tokens);
       await fetchUser();
+
+      // Check if the user needs to complete onboarding
+      const needsOnboarding = await checkOnboardingStatus();
+      setNeedsOnboarding(needsOnboarding);
+
+      if (needsOnboarding) {
+        history.replace("/onboarding");
+      } else {
+        history.replace("/home");
+      }
     } catch (error) {
       if (error instanceof Response) {
         if (error.status >= 500) {
@@ -71,6 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       await tokenService.clearTokens();
       setUser(null);
+      setNeedsOnboarding(false);
       history.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
@@ -80,10 +129,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const fetchUser = async () => {
+  const fetchUser = async (): Promise<User | null> => {
     try {
       const userData = await apiService.get("/profile");
       setUser(userData);
+      return userData;
     } catch (error) {
       console.error("Failed to fetch user:", error);
       throw new Error("Failed to fetch user");
@@ -96,11 +146,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     name: string
   ): Promise<string | void> => {
     try {
-      return await apiService.post(
+      const response = await apiService.post(
         "/auth/signup",
         { email, password, name },
-        { requiresAuth: false }
+        {
+          requiresAuth: false,
+          expectedResponseType: "text", // Specify we expect a text response
+        }
       );
+
+      // After successful signup, we set the onboarding requirement
+      setNeedsOnboarding(true);
+      return response;
     } catch (error) {
       if (error instanceof Response) {
         if (error.status >= 500) {
@@ -117,7 +174,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           );
         }
       }
+      // If it's already an Error object, just rethrow it
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error("Something went wrong during signup. Please try again.");
+    }
+  };
+
+  const completeOnboarding = async (data: OnboardingData): Promise<void> => {
+    try {
+      // Submit onboarding data to the backend
+      await apiService.post("/onboarding", {
+        description: data.description,
+        topics: data.topics,
+        trackingConsent: data.trackingConsent,
+      });
+
+      // Update local state to reflect onboarding completion
+      setNeedsOnboarding(false);
+
+      // Refresh user profile data
+      await fetchUser();
+    } catch (error) {
+      console.error("Failed to complete onboarding:", error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Failed to save your preferences. Please try again.");
     }
   };
 
@@ -167,6 +251,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         if (tokenService.isAuthenticated()) {
           await fetchUser();
+
+          // Check if onboarding is needed
+          const onboardingNeeded = await checkOnboardingStatus();
+          setNeedsOnboarding(onboardingNeeded);
+
+          // Redirect to onboarding if needed, but only if not already on the onboarding page
+          if (onboardingNeeded && location.pathname !== "/onboarding") {
+            history.replace("/onboarding");
+          }
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
@@ -176,7 +269,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     initAuth();
-  }, []);
+  }, [history, location.pathname]);
 
   return (
     <AuthContext.Provider
@@ -187,6 +280,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         isLoading,
         isAuthenticated: !!user,
         signup,
+        completeOnboarding,
+        checkOnboardingStatus,
+        getOnboardingData,
+        needsOnboarding,
+        setNeedsOnboarding,
       }}
     >
       {children}

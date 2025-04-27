@@ -50,7 +50,11 @@ const Signup: React.FC = () => {
       setToastStatus("success");
       await posthogCaptureEvent("user.signup.success", { email, name });
       await posthogIdentify(email);
-      history.push("/home");
+
+      // Redirect to onboarding after successful signup instead of home
+      setTimeout(() => {
+        history.push("/onboarding");
+      }, 1500);
     } catch (error) {
       await posthogCaptureEvent("user.signup.error", {
         error:

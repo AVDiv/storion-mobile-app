@@ -14,6 +14,7 @@ import Article from "./pages/Article";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import Onboarding from "./pages/Onboarding"; // Import the Onboarding component
 // import SettingsPage from "./pages/SettingsPage";
 
 /* Core CSS required for Ionic components to work properly */
@@ -51,6 +52,7 @@ import "@ionic/react/css/palettes/dark.class.css";
 import Search from "./pages/Search";
 import { AuthProvider } from "./services/auth/authContext";
 import PrivateRoute from "./components/utils/function/PrivateRoute";
+import OnboardingRoute from "./components/utils/function/OnboardingRoute";
 import { initializePostHog } from "./services/analytics/posthogAnalytics";
 import { storageService } from "./services/storage/storageService";
 import { tokenService } from "./services/auth/tokenService";
@@ -81,6 +83,7 @@ const App: React.FC = () => {
             {/* Public routes */}
             <Route exact path="/login" component={Login} />
             <Route exact path="/signup" component={Signup} />
+            <PrivateRoute exact path="/onboarding" component={Onboarding} />
 
             {/* Protected routes */}
             <Route>
@@ -89,11 +92,15 @@ const App: React.FC = () => {
                   <Route exact path="/">
                     <Redirect to="/home" />
                   </Route>
-                  <PrivateRoute exact path="/home" component={Home} />
-                  <PrivateRoute exact path="/search" component={Search} />
-                  <PrivateRoute exact path="/article/:id" component={Article} />
-                  <PrivateRoute exact path="/profile" component={Profile} />
-                  {/* <PrivateRoute
+                  <OnboardingRoute exact path="/home" component={Home} />
+                  <OnboardingRoute exact path="/search" component={Search} />
+                  <OnboardingRoute
+                    exact
+                    path="/article/:id"
+                    component={Article}
+                  />
+                  <OnboardingRoute exact path="/profile" component={Profile} />
+                  {/* <OnboardingRoute
                     exact
                     path="/settings"
                     component={SettingsPage}

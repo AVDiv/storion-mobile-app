@@ -1,4 +1,13 @@
 export interface User {
-  name: string;
+  id: string;
   email: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  isOnboarded?: boolean;
+  preferences?: {
+    interestsDescription?: string;
+    subscribedTopics?: string[];
+    trackingConsent?: boolean;
+  };
 }
