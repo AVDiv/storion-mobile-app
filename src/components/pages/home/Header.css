@@ -12,12 +12,12 @@
 }
 
 .ion-header-home ion-title {
-  font-size: 2.4rem;
+  font-size: 1.6rem;
   font-weight: 600;
 }
 
 .ion-header-home ion-title.title-small {
-  font-size: 1.5rem;
+  font-size: 1rem;
 }
 
 .ion-header-home ion-toolbar {

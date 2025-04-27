@@ -15,8 +15,9 @@ import {
   useIonViewDidLeave,
 } from "@ionic/react";
 import { arrowUpOutline, filterOutline } from "ionicons/icons";
-import PageHeader from "../components/PageHeader";
 import NewsCard from "../components/NewsCard";
+import HomeHeader from "../components/pages/home/Header";
+import { useAuth } from "../services/auth/authContext";
 import "./styles/Home.css";
 import {
   posthogPageleaveCaptureEvent,
@@ -90,6 +91,7 @@ const mockNewsItems = [
 ];
 
 const Home: React.FC = () => {
+  const { user } = useAuth();
   const [selectedSegment, setSelectedSegment] = useState<string>("trending");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -97,6 +99,7 @@ const Home: React.FC = () => {
   const [newsItems, setNewsItems] = useState<any[]>([]);
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
   const [scrollY, setScrollY] = useState(0);
+  const [isHeaderTranslucent, setIsHeaderTranslucent] = useState(false);
 
   // Simulate data loading
   useEffect(() => {
@@ -117,11 +120,12 @@ const Home: React.FC = () => {
     posthogPageleaveCaptureEvent();
   });
 
-  // Handle scroll to show/hide scroll-to-top button
+  // Handle scroll to show/hide scroll-to-top button and set header translucency
   const handleScroll = (e: CustomEvent) => {
     const scrollTop = e.detail.scrollTop;
     setScrollY(scrollTop);
     setShowScrollTop(scrollTop > 300);
+    setIsHeaderTranslucent(scrollTop > 50);
   };
 
   // Handle pull-to-refresh
@@ -155,91 +159,90 @@ const Home: React.FC = () => {
 
   return (
     <IonPage>
-      <PageHeader title="News Feed" onSearchChange={setSearchQuery} />
+      <HomeHeader isTranslucent={isHeaderTranslucent} userName={user?.name} />
 
       <IonContent
         className="page-transition"
         scrollEvents={true}
         onIonScroll={handleScroll}
+        fullscreen
       >
-        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
-          <IonRefresherContent></IonRefresherContent>
-        </IonRefresher>
+        <div>
+          <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+            <IonRefresherContent></IonRefresherContent>
+          </IonRefresher>
 
-        <div className="segment-container">
-          <IonSegment
-            value={selectedSegment}
-            onIonChange={(e) => setSelectedSegment(e.detail.value as string)}
-            className="custom-segment"
-          >
-            <IonSegmentButton value="trending">
-              <IonLabel>Trending</IonLabel>
-            </IonSegmentButton>
-            <IonSegmentButton value="latest">
-              <IonLabel>Latest</IonLabel>
-            </IonSegmentButton>
-            <IonSegmentButton value="following">
-              <IonLabel>Following</IonLabel>
-            </IonSegmentButton>
-          </IonSegment>
-        </div>
+          <div className="segment-container">
+            <IonSegment
+              value={selectedSegment}
+              onIonChange={(e) => setSelectedSegment(e.detail.value as string)}
+              className="custom-segment"
+            >
+              <IonSegmentButton value="trending">
+                <IonLabel>Trending</IonLabel>
+              </IonSegmentButton>
+              <IonSegmentButton value="latest">
+                <IonLabel>Latest</IonLabel>
+              </IonSegmentButton>
+              <IonSegmentButton value="following">
+                <IonLabel>Following</IonLabel>
+              </IonSegmentButton>
+            </IonSegment>
+          </div>
 
-        <div className="categories-container">
-          <div className="categories-scroll">
-            {categories.map((category) => (
-              <IonChip
-                key={category}
-                color={selectedCategory === category ? "primary" : "medium"}
-                className={`category-chip ${
-                  selectedCategory === category ? "active" : ""
-                }`}
-                onClick={() => setSelectedCategory(category)}
-              >
-                <IonLabel>{category}</IonLabel>
-              </IonChip>
-            ))}
+          <div className="categories-container">
+            <div className="categories-scroll">
+              {categories.map((category) => (
+                <IonChip
+                  key={category}
+                  color={selectedCategory === category ? "primary" : "medium"}
+                  className={`category-chip ${
+                    selectedCategory === category ? "active" : ""
+                  }`}
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  <IonLabel>{category}</IonLabel>
+                </IonChip>
+              ))}
+            </div>
+          </div>
+
+          <div className="news-container">
+            {isLoading ? (
+              Array(3)
+                .fill(null)
+                .map((_, index) => (
+                  <NewsCard
+                    key={`skeleton-${index}`}
+                    loading={true}
+                    title=""
+                    source=""
+                    date=""
+                    excerpt=""
+                  />
+                ))
+            ) : filteredNews.length > 0 ? (
+              filteredNews.map((item) => (
+                <NewsCard
+                  key={item.id}
+                  title={item.title}
+                  source={item.source}
+                  date={item.date}
+                  excerpt={item.excerpt}
+                  imageUrl={item.imageUrl}
+                  category={item.category}
+                  onClick={() => (window.location.href = `/article/${item.id}`)}
+                />
+              ))
+            ) : (
+              <div className="no-results">
+                <h3>No articles found</h3>
+                <p>Try adjusting your search or filters</p>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="news-container">
-          {isLoading ? (
-            // Render skeleton loaders when loading
-            Array(3)
-              .fill(null)
-              .map((_, index) => (
-                <NewsCard
-                  key={`skeleton-${index}`}
-                  loading={true}
-                  title=""
-                  source=""
-                  date=""
-                  excerpt=""
-                />
-              ))
-          ) : filteredNews.length > 0 ? (
-            // Render actual news items
-            filteredNews.map((item) => (
-              <NewsCard
-                key={item.id}
-                title={item.title}
-                source={item.source}
-                date={item.date}
-                excerpt={item.excerpt}
-                imageUrl={item.imageUrl}
-                category={item.category}
-                onClick={() => (window.location.href = `/article/${item.id}`)}
-              />
-            ))
-          ) : (
-            // No results found
-            <div className="no-results">
-              <h3>No articles found</h3>
-              <p>Try adjusting your search or filters</p>
-            </div>
-          )}
-        </div>
-
-        {/* Scroll to top button */}
         {showScrollTop && (
           <IonFab vertical="bottom" horizontal="end" slot="fixed">
             <IonFabButton onClick={scrollToTop} size="small">
