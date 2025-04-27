@@ -1,5 +1,5 @@
 export const DEFAULT_STORAGE_VALUES = {
-  telemetry_enabled: false,
+  telemetry_enabled: true,
   auth_tokens: null,
 } as const;
 
