@@ -119,6 +119,22 @@ ion-toolbar {
   animation: fadeInUp 0.3s forwards;
 }
 
+/* Add noise effect globally */
+ion-app::after {
+  content: "";
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1MCcgaGVpZ2h0PSc1MCc+PGZpbHRlciBpZD0nbic+PGZlVHVyYnVsZW5jZSB0eXBlPSdmcmFjdGFsTm9pc2UnIGJhc2VGcmVxdWVuY3k9JzAuNjUnIG51bU9jdGF2ZXM9JzQnIHN0aXRjaFRpbGVzPSdzdGl0Y2gnLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0nMTAwJScgaGVpZ2h0PScxMDAlJyBmaWx0ZXI9J3VybCgjbiknIG9wYWNpdHk9JzAuNScvPjwvc3ZnPg==")
+    repeat;
+  opacity: var(--noise-opacity);
+  filter: var(--noise-filter);
+  z-index: 0;
+  pointer-events: none;
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

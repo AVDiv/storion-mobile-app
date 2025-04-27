@@ -117,6 +117,10 @@
   /* Custom shadows */
   --storion-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   --storion-hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+
+  /* Noise Effect Variables (Light Theme Defaults) */
+  --noise-opacity: 0.9;
+  --noise-filter: sepia(80%) hue-rotate(200deg) saturate(30%) brightness(95%);
 }
 
 :root.ios,
@@ -248,5 +252,12 @@
 
     /* Item background */
     --ion-item-background: #2d3039;
+  }
+
+  /* Dark Theme Noise Overrides */
+  :root {
+    --noise-opacity: 0.2;
+    --noise-filter: sepia(100%) hue-rotate(240deg) saturate(100%)
+      brightness(90%);
   }
 }
