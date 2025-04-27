@@ -39,7 +39,7 @@ const Login: React.FC = () => {
   // If already authenticated, redirect
   useEffect(() => {
     if (isAuthenticated) {
-      history.replace(from);
+      history.replace(from ? from.pathname : "/home");
     }
   }, [isAuthenticated, history, from]);
 
@@ -59,7 +59,7 @@ const Login: React.FC = () => {
       await posthogIdentify(email);
 
       // Redirect to the page the user was trying to access or home
-      history.replace(from);
+      history.replace(from ? from.pathname : "/home");
     } catch (error) {
       await posthogCaptureEvent("user.login.error", {
         error:

@@ -21,7 +21,6 @@ import { exitOutline, settingsOutline } from "ionicons/icons";
 import { useAuth } from "../services/auth/authContext";
 import { useHistory } from "react-router-dom";
 import "./styles/Profile.css";
-import TestAuthComponent from "../components/utils/TestAuthComponent";
 
 const Profile: React.FC = () => {
   const { user, logout } = useAuth();
@@ -86,9 +85,6 @@ const Profile: React.FC = () => {
                 </IonList>
               </IonCardContent>
             </IonCard>
-
-            {/* Authentication Demo Component */}
-            <TestAuthComponent />
           </>
         )}
       </IonContent>
