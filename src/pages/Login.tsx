@@ -11,9 +11,9 @@ import {
 } from "@ionic/react";
 import { Mail as MailIcon, Lock as LockIcon } from "iconoir-react";
 
-import { Link, useHistory } from "react-router-dom";
+import { Link, useHistory, useLocation } from "react-router-dom";
 import "./styles/Login.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../services/auth/authContext";
 import {
   posthogCaptureEvent,
@@ -27,18 +27,39 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const history = useHistory();
+  const location = useLocation();
+
+  // Redirect if coming from a protected route
+  const { from } = (location.state as { from?: { pathname: string } }) || {
+    from: { pathname: "/home" },
+  };
+
+  // If already authenticated, redirect
+  useEffect(() => {
+    if (isAuthenticated) {
+      history.replace(from);
+    }
+  }, [isAuthenticated, history, from]);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      setError("Email and password are required");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+
     try {
       await posthogCaptureEvent("user.login.attempt", { email });
       await login(email, password);
       await posthogCaptureEvent("user.login.success", { email });
-      await await posthogIdentify(email);
-      history.push("/home");
+      await posthogIdentify(email);
+
+      // Redirect to the page the user was trying to access or home
+      history.replace(from);
     } catch (error) {
       await posthogCaptureEvent("user.login.error", {
         error:
@@ -51,6 +72,12 @@ const Login: React.FC = () => {
       );
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && email && password) {
+      handleLogin();
     }
   };
 
@@ -98,6 +125,7 @@ const Login: React.FC = () => {
                 value={email}
                 onIonChange={(e) => setEmail(e.detail.value!)}
                 className="auth-input"
+                onKeyPress={handleKeyPress}
               />
             </IonItem>
 
@@ -109,6 +137,7 @@ const Login: React.FC = () => {
                 value={password}
                 onIonInput={handlePasswordChange}
                 className="auth-input"
+                onKeyPress={handleKeyPress}
               >
                 <IonInputPasswordToggle slot="end" />
               </IonInput>

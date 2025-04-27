@@ -1,13 +1,13 @@
 import React from "react";
-import { Route, Redirect, RouteProps } from "react-router-dom";
+import { Redirect, Route, RouteProps } from "react-router-dom";
 import { IonLoading } from "@ionic/react";
-import { useAuth } from "../../../services/auth/authContext";
+import { useAuth } from "./authContext";
 
 interface PrivateRouteProps extends RouteProps {
   component: React.ComponentType<any>;
 }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({
+export const PrivateRoute: React.FC<PrivateRouteProps> = ({
   component: Component,
   ...rest
 }) => {
@@ -16,10 +16,12 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   return (
     <Route
       {...rest}
-      render={(props) =>
-        isLoading ? (
-          <IonLoading isOpen={true} message={"Please wait..."} />
-        ) : isAuthenticated ? (
+      render={(props) => {
+        if (isLoading) {
+          return <IonLoading isOpen={true} message={"Please wait..."} />;
+        }
+
+        return isAuthenticated ? (
           <Component {...props} />
         ) : (
           <Redirect
@@ -28,10 +30,8 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
               state: { from: props.location },
             }}
           />
-        )
-      }
+        );
+      }}
     />
   );
 };
-
-export default PrivateRoute;

@@ -13,6 +13,8 @@ import Home from "./pages/Home";
 import Article from "./pages/Article";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
+// import SettingsPage from "./pages/SettingsPage";
 
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
@@ -51,6 +53,7 @@ import { AuthProvider } from "./services/auth/authContext";
 import PrivateRoute from "./components/utils/function/PrivateRoute";
 import { initializePostHog } from "./services/analytics/posthogAnalytics";
 import { storageService } from "./services/storage/storageService";
+import { tokenService } from "./services/auth/tokenService";
 import { useEffect } from "react";
 
 setupIonicReact({
@@ -65,6 +68,7 @@ const App: React.FC = () => {
     const initApp = async () => {
       await storageService.init();
       await initializePostHog();
+      // Initialize token service is done automatically in its constructor
     };
     initApp();
   }, []);
@@ -88,6 +92,12 @@ const App: React.FC = () => {
                   <PrivateRoute exact path="/home" component={Home} />
                   <PrivateRoute exact path="/search" component={Search} />
                   <PrivateRoute exact path="/article/:id" component={Article} />
+                  <PrivateRoute exact path="/profile" component={Profile} />
+                  {/* <PrivateRoute
+                    exact
+                    path="/settings"
+                    component={SettingsPage}
+                  /> */}
                 </IonRouterOutlet>
 
                 <IonTabBar slot="bottom">
@@ -99,10 +109,6 @@ const App: React.FC = () => {
                   <IonTabButton tab="search" layout="icon-start" href="/search">
                     <SearchIcon />
                     <IonLabel>Search</IonLabel>
-                  </IonTabButton>
-
-                  <IonTabButton tab="unknown" layout="icon-start" href="/#">
-                    <IonLabel>Unknown</IonLabel>
                   </IonTabButton>
 
                   <IonTabButton
