@@ -91,9 +91,7 @@ const Signup: React.FC = () => {
         <div className="auth-container">
           <div className="auth-header">
             <div className="logo-container">
-              <div className="app-logo">
-                <div className="logo-icon">S</div>
-              </div>
+              <div className="app-logo"></div>
             </div>
 
             <h1>Create Account</h1>

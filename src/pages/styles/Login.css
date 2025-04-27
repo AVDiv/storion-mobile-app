@@ -69,52 +69,23 @@
 .logo-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 16px; /* Reduced from 24px */
 }
 
 .app-logo {
-  width: 64px; /* Reduced from 80px */
-  height: 64px; /* Reduced from 80px */
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 18px; /* Reduced from 24px */
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  width: 128px;
+  height: 128px;
   position: relative;
   overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   transform: translateY(0);
   transition: transform 0.3s ease;
-}
-
-.app-logo:hover {
-  transform: translateY(-5px);
-}
-
-.logo-icon {
-  font-size: 32px; /* Reduced from 40px */
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.app-logo::after {
-  content: "";
-  position: absolute;
-  width: 140%;
-  height: 140%;
-  top: -20%;
-  left: -20%;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0) 60%
-  );
-  transform: rotate(15deg);
+  background-image: url("/assets/logo-dark.svg");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .auth-container {
-  max-width: 450px; /* Increased from 380px for more space */
+  max-width: 450px;
   width: 100%;
   margin: 0 auto;
   padding: 0 20px;
@@ -127,9 +98,10 @@
 
 .auth-container h1 {
   color: white;
-  font-size: 2.2rem; /* Reduced from 2.6rem */
+  font-size: 2.2rem;
   font-weight: 700;
-  margin-bottom: 8px; /* Reduced from 12px */
+  margin-bottom: 8px;
+  margin-top: 8px;
   letter-spacing: -0.5px;
 }
 
@@ -382,14 +354,6 @@ ion-item.item-has-focus .input-icon {
     width: 60px;
     height: 60px;
   }
-
-  .logo-icon {
-    font-size: 28px;
-  }
-
-  .auth-container h1 {
-    font-size: 2rem;
-  }
 }
 
 @media (max-width: 370px) {
@@ -408,10 +372,6 @@ ion-item.item-has-focus .input-icon {
   .app-logo {
     width: 56px;
     height: 56px;
-  }
-
-  .logo-icon {
-    font-size: 26px;
   }
 }
 
@@ -438,21 +398,10 @@ ion-item.item-has-focus .input-icon {
   }
 
   .app-logo {
-    background: rgba(var(--color-primary-rgb), 0.08); /* Slightly darker */
-    box-shadow: 0 6px 20px rgba(var(--color-primary-rgb), 0.12); /* Adjusted shadow */
-  }
-
-  .logo-icon {
-    color: var(--color-primary);
-    text-shadow: none;
-  }
-
-  .app-logo::after {
-    background: linear-gradient(
-      135deg,
-      rgba(var(--color-primary-rgb), 0.2) 0%,
-      rgba(var(--color-primary-rgb), 0) 60%
-    );
+    background-image: url("/assets/logo.svg");
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
   }
 
   .auth-container h1 {
