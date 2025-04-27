@@ -21,9 +21,26 @@
 /* Light mode overrides for signup page */
 @media (prefers-color-scheme: light) {
   .password-requirements {
-    background: rgba(var(--color-primary-rgb), 0.03);
-    border: 1px solid rgba(var(--color-primary-rgb), 0.08);
-    box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.04);
+    background: rgba(
+      var(--color-primary-rgb),
+      0.05
+    ); /* Match item background */
+    border: 1px solid rgba(var(--color-primary-rgb), 0.1); /* Match item border */
+    box-shadow: none; /* Remove shadow */
+  }
+  /* Ensure checklist text is readable */
+  .password-requirements .requirement {
+    color: var(--ion-color-medium-shade);
+  }
+  .password-requirements .requirement.valid {
+    color: var(--ion-color-success-shade); /* Darker success color */
+  }
+  .password-requirements .requirement .check-icon,
+  .password-requirements .requirement .cancel-icon {
+    color: var(--ion-color-medium-tint);
+  }
+  .password-requirements .requirement.valid .check-icon {
+    color: var(--ion-color-success-shade);
   }
 }
 
