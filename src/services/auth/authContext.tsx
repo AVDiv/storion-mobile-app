@@ -36,9 +36,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [securityAlert, setSecurityAlert] = useState<string | null>(null);
   const history = useHistory();
+  const location = useLocation();
 
   // Check if a user needs to complete onboarding
   const checkOnboardingStatus = async (): Promise<boolean> => {
@@ -107,24 +109,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = async () => {
     try {
-      const tokenFamily = tokenService.getTokenFamily();
-
-      if (tokenFamily) {
-        try {
-          await apiService.post("/auth/revoke", { tokenFamily });
-        } catch (error) {
-          console.warn("Failed to revoke tokens on server:", error);
-        }
-      }
-
+      // Just clear tokens and update state, no need to revoke token family
       await tokenService.clearTokens();
       setUser(null);
+      setIsAuthenticated(false);
       setNeedsOnboarding(false);
       history.push("/login");
     } catch (error) {
       console.error("Logout error:", error);
       await tokenService.clearTokens();
       setUser(null);
+      setIsAuthenticated(false);
       history.push("/login");
     }
   };
@@ -133,9 +128,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const userData = await apiService.get("/profile");
       setUser(userData);
+      setIsAuthenticated(true);
       return userData;
     } catch (error) {
       console.error("Failed to fetch user:", error);
+      setIsAuthenticated(false);
       throw new Error("Failed to fetch user");
     }
   };
@@ -211,12 +208,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (customEvent.detail?.securityBreach) {
         setUser(null);
+        setIsAuthenticated(false);
         setSecurityAlert(
           "Possible security breach detected. Please log in again for your safety."
         );
         history.push("/login");
       } else if (customEvent.detail?.refreshFailed) {
         setUser(null);
+        setIsAuthenticated(false);
         history.push("/login");
       }
     };
@@ -224,17 +223,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const handleTokenRefreshed = (event: Event) => {
       const customEvent = event as CustomEvent;
       if (customEvent.detail?.rotated) {
-        console.log("Token rotated successfully");
+        console.debug("Token rotated successfully");
       }
     };
 
     const unsubscribeSecurityBreach = apiService.onSecurityBreach(() => {
       setUser(null);
+      setIsAuthenticated(false);
       setSecurityAlert(
         "Possible security breach detected. Please log in again for your safety."
       );
       history.push("/login");
     });
+
+    // Subscribe to onboarding required notifications
+    const unsubscribeOnboardingRequired = apiService.onOnboardingRequired(
+      () => {
+        setNeedsOnboarding(true);
+        if (location.pathname !== "/onboarding") {
+          history.replace("/onboarding");
+        }
+      }
+    );
 
     window.addEventListener("auth_state_changed", handleAuthStateChange);
     window.addEventListener("auth_token_refreshed", handleTokenRefreshed);
@@ -243,26 +253,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       window.removeEventListener("auth_state_changed", handleAuthStateChange);
       window.removeEventListener("auth_token_refreshed", handleTokenRefreshed);
       unsubscribeSecurityBreach();
+      unsubscribeOnboardingRequired();
     };
-  }, [history]);
+  }, [history, location.pathname]);
 
   useEffect(() => {
     const initAuth = async () => {
       try {
+        // Timeout to let restore the session
+        await new Promise((resolve) => setTimeout(resolve, 150));
         if (tokenService.isAuthenticated()) {
-          await fetchUser();
+          try {
+            await fetchUser();
+            setIsAuthenticated(true);
 
-          // Check if onboarding is needed
-          const onboardingNeeded = await checkOnboardingStatus();
-          setNeedsOnboarding(onboardingNeeded);
+            if (
+              location.pathname === "/" ||
+              location.pathname === "/login" ||
+              location.pathname === "/home"
+            ) {
+              const onboardingNeeded = await checkOnboardingStatus();
+              setNeedsOnboarding(onboardingNeeded);
 
-          // Redirect to onboarding if needed, but only if not already on the onboarding page
-          if (onboardingNeeded && location.pathname !== "/onboarding") {
-            history.replace("/onboarding");
+              // Redirect to onboarding if needed
+              if (onboardingNeeded) {
+                history.replace("/onboarding");
+              }
+            }
+          } catch (error) {
+            // If we can't fetch the user, the token might be invalid
+            console.error(
+              "Error fetching user during auth initialization:",
+              error
+            );
+            // Don't immediately log out - we'll try to refresh the token first
+            try {
+              const token = await tokenService.refreshAccessToken();
+              if (token) {
+                // If token refresh succeeded, try to fetch user again
+                await fetchUser();
+                setIsAuthenticated(true);
+              } else {
+                // If refresh failed, clear auth state
+                await tokenService.clearTokens();
+                setUser(null);
+                setIsAuthenticated(false);
+                setNeedsOnboarding(false);
+              }
+            } catch (refreshError) {
+              console.error(
+                "Token refresh failed during auth initialization:",
+                refreshError
+              );
+              await tokenService.clearTokens();
+              setUser(null);
+              setIsAuthenticated(false);
+              setNeedsOnboarding(false);
+            }
           }
+        } else {
+          setIsAuthenticated(false);
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
+        setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
       }
@@ -278,7 +332,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         login,
         logout,
         isLoading,
-        isAuthenticated: !!user,
+        isAuthenticated,
         signup,
         completeOnboarding,
         checkOnboardingStatus,

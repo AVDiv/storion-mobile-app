@@ -22,7 +22,6 @@ import {
   shareOutline,
   textOutline,
   heartOutline,
-  ellipsisHorizontal,
   arrowBackOutline,
   linkOutline,
   chatbubbleOutline,

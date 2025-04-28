@@ -14,6 +14,7 @@ class ApiService {
   private isRefreshing = false;
   private refreshQueue: Array<() => void> = [];
   private tokenSecurityListeners: Set<() => void> = new Set();
+  private onboardingRequiredListeners: Set<() => void> = new Set();
 
   constructor() {
     // Listen for token security events
@@ -41,10 +42,26 @@ class ApiService {
   }
 
   /**
+   * Register a listener for onboarding required events
+   */
+  public onOnboardingRequired(callback: () => void): () => void {
+    this.onboardingRequiredListeners.add(callback);
+    // Return unsubscribe function
+    return () => this.onboardingRequiredListeners.delete(callback);
+  }
+
+  /**
    * Notify all listeners of a security breach
    */
   private notifySecurityBreach(): void {
     this.tokenSecurityListeners.forEach((callback) => callback());
+  }
+
+  /**
+   * Notify all listeners that onboarding is required
+   */
+  private notifyOnboardingRequired(): void {
+    this.onboardingRequiredListeners.forEach((callback) => callback());
   }
 
   /**
@@ -110,6 +127,41 @@ class ApiService {
           });
         } else {
           throw new Error("Authentication failed");
+        }
+      }
+
+      // Handle 403 Forbidden - Check for onboarding required message
+      if (response.status === 403) {
+        try {
+          // Try to parse error message to check if it's related to onboarding
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await response.clone().json();
+            if (
+              errorData &&
+              (errorData.message?.includes("Onboarding must be completed") ||
+                errorData.error?.includes("Onboarding must be completed"))
+            ) {
+              // Notify listeners that onboarding is required
+              this.notifyOnboardingRequired();
+              throw new Error("Onboarding must be completed first");
+            }
+          } else {
+            const errorText = await response.clone().text();
+            if (errorText?.includes("Onboarding must be completed")) {
+              // Notify listeners that onboarding is required
+              this.notifyOnboardingRequired();
+              throw new Error("Onboarding must be completed first");
+            }
+          }
+        } catch (parseError) {
+          if (
+            parseError instanceof Error &&
+            parseError.message === "Onboarding must be completed first"
+          ) {
+            throw parseError;
+          }
+          console.warn("Failed to parse 403 response", parseError);
         }
       }
 

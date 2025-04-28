@@ -1,4 +1,9 @@
-import { Redirect, Route, Switch } from "react-router-dom";
+import {
+  Redirect,
+  Route,
+  BrowserRouter as Router,
+  Switch,
+} from "react-router-dom";
 import {
   IonApp,
   IonLabel,
@@ -55,7 +60,6 @@ import PrivateRoute from "./components/utils/function/PrivateRoute";
 import OnboardingRoute from "./components/utils/function/OnboardingRoute";
 import { initializePostHog } from "./services/analytics/posthogAnalytics";
 import { storageService } from "./services/storage/storageService";
-import { tokenService } from "./services/auth/tokenService";
 import { useEffect } from "react";
 
 setupIonicReact({
@@ -77,61 +81,71 @@ const App: React.FC = () => {
 
   return (
     <IonApp>
-      <AuthProvider>
-        <IonReactRouter>
-          <Switch>
-            {/* Public routes */}
-            <Route exact path="/login" component={Login} />
-            <Route exact path="/signup" component={Signup} />
-            <PrivateRoute exact path="/onboarding" component={Onboarding} />
+      <Router>
+        <AuthProvider>
+          <IonReactRouter>
+            <Switch>
+              {/* Public routes */}
+              <Route exact path="/login" component={Login} />
+              <Route exact path="/signup" component={Signup} />
+              <PrivateRoute exact path="/onboarding" component={Onboarding} />
 
-            {/* Protected routes */}
-            <Route>
-              <IonTabs>
-                <IonRouterOutlet>
-                  <Route exact path="/">
-                    <Redirect to="/home" />
-                  </Route>
-                  <OnboardingRoute exact path="/home" component={Home} />
-                  <OnboardingRoute exact path="/search" component={Search} />
-                  <OnboardingRoute
-                    exact
-                    path="/article/:id"
-                    component={Article}
-                  />
-                  <OnboardingRoute exact path="/profile" component={Profile} />
-                  {/* <OnboardingRoute
+              {/* Protected routes */}
+              <Route>
+                <IonTabs>
+                  <IonRouterOutlet>
+                    <Route exact path="/">
+                      <Redirect to="/home" />
+                    </Route>
+                    <OnboardingRoute exact path="/home" component={Home} />
+                    <OnboardingRoute exact path="/search" component={Search} />
+                    <OnboardingRoute
+                      exact
+                      path="/article/:id"
+                      component={Article}
+                    />
+                    <OnboardingRoute
+                      exact
+                      path="/profile"
+                      component={Profile}
+                    />
+                    {/* <OnboardingRoute
                     exact
                     path="/settings"
                     component={SettingsPage}
                   /> */}
-                </IonRouterOutlet>
+                  </IonRouterOutlet>
 
-                <IonTabBar slot="bottom">
-                  <IonTabButton tab="home" layout="icon-start" href="/home">
-                    <HomeIcon />
-                    <IonLabel>Home</IonLabel>
-                  </IonTabButton>
+                  <IonTabBar slot="bottom">
+                    <IonTabButton tab="home" layout="icon-start" href="/home">
+                      <HomeIcon />
+                      <IonLabel>Home</IonLabel>
+                    </IonTabButton>
 
-                  <IonTabButton tab="search" layout="icon-start" href="/search">
-                    <SearchIcon />
-                    <IonLabel>Search</IonLabel>
-                  </IonTabButton>
+                    <IonTabButton
+                      tab="search"
+                      layout="icon-start"
+                      href="/search"
+                    >
+                      <SearchIcon />
+                      <IonLabel>Search</IonLabel>
+                    </IonTabButton>
 
-                  <IonTabButton
-                    tab="profile"
-                    layout="icon-start"
-                    href="/profile"
-                  >
-                    <UserIcon />
-                    <IonLabel>Profile</IonLabel>
-                  </IonTabButton>
-                </IonTabBar>
-              </IonTabs>
-            </Route>
-          </Switch>
-        </IonReactRouter>
-      </AuthProvider>
+                    <IonTabButton
+                      tab="profile"
+                      layout="icon-start"
+                      href="/profile"
+                    >
+                      <UserIcon />
+                      <IonLabel>Profile</IonLabel>
+                    </IonTabButton>
+                  </IonTabBar>
+                </IonTabs>
+              </Route>
+            </Switch>
+          </IonReactRouter>
+        </AuthProvider>
+      </Router>
     </IonApp>
   );
 };

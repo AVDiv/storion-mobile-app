@@ -9,13 +9,13 @@ interface OnboardingRouteProps extends RouteProps {
 
 /**
  * OnboardingRoute ensures users have completed onboarding before accessing protected routes
- * If onboarding is required, it redirects the user to the onboarding page
+ * Now relies on API 403 responses to detect onboarding requirements
  */
 const OnboardingRoute: React.FC<OnboardingRouteProps> = ({
   component: Component,
   ...rest
 }) => {
-  const { isAuthenticated, isLoading, needsOnboarding } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <Route
@@ -36,20 +36,6 @@ const OnboardingRoute: React.FC<OnboardingRouteProps> = ({
             />
           );
         }
-
-        // If needs onboarding, redirect to onboarding
-        if (needsOnboarding) {
-          return (
-            <Redirect
-              to={{
-                pathname: "/onboarding",
-                state: { from: props.location },
-              }}
-            />
-          );
-        }
-
-        // User is authenticated and completed onboarding, render the component
         return <Component {...props} />;
       }}
     />
