@@ -20,6 +20,7 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Onboarding from "./pages/Onboarding"; // Import the Onboarding component
+import Source from "./pages/Source"; // Import the Source component
 // import SettingsPage from "./pages/SettingsPage";
 
 /* Core CSS required for Ionic components to work properly */
@@ -103,6 +104,11 @@ const App: React.FC = () => {
                       exact
                       path="/article/:id"
                       component={Article}
+                    />
+                    <OnboardingRoute
+                      exact
+                      path="/source/:id"
+                      component={Source}
                     />
                     <OnboardingRoute
                       exact

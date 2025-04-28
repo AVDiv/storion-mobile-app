@@ -1,5 +1,6 @@
 import React from "react";
 import { IonItem, IonLabel } from "@ionic/react";
+import { useHistory } from "react-router-dom";
 import "./SearchCards.css";
 
 interface Source {
@@ -18,11 +19,13 @@ interface SourceCardProps {
 }
 
 const SourceCard: React.FC<SourceCardProps> = ({ source, onClick }) => {
+  const history = useHistory();
+
   const handleClick = () => {
     if (onClick) {
       onClick();
     } else {
-      window.location.href = `/source/${source.id}`;
+      history.push(`/source/${source.id}`);
     }
   };
 
