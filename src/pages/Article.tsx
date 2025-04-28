@@ -15,8 +15,12 @@ import {
   IonLabel,
   useIonViewDidEnter,
   useIonViewDidLeave,
+  IonSpinner,
+  IonToast,
+  useIonRouter,
 } from "@ionic/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import {
   bookmarkOutline,
   shareOutline,
@@ -25,64 +29,73 @@ import {
   arrowBackOutline,
   linkOutline,
   chatbubbleOutline,
+  arrowForward,
 } from "ionicons/icons";
+// Import Swiper React components
+import { Swiper, SwiperSlide } from "swiper/react";
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/free-mode";
+// Import required Swiper modules
+import { FreeMode } from "swiper/modules";
+
 import "./styles/Article.css";
 import {
   posthogPageleaveCaptureEvent,
   posthogPageviewCaptureEvent,
 } from "../services/analytics/posthogAnalytics";
+import { newsService } from "../services/api/newsService";
+import { NewsEventArticle as NewsEventArticleType, NewsEvent } from "../types";
+import RelatedArticleCard from "../components/RelatedArticleCard";
 
-// Mock article data
-const article = {
-  id: 1,
-  title: "The Future of Artificial Intelligence in Healthcare",
-  subtitle: "How AI is revolutionizing diagnosis, treatment, and patient care",
-  source: "Tech Today",
-  author: "Sarah Johnson",
-  date: "October 15, 2023",
-  category: "Technology",
-  readTime: "5 min read",
-  imageUrl: "https://source.unsplash.com/random/1200x600?ai,healthcare",
-  content: `
-    <p>Artificial intelligence is rapidly transforming the healthcare industry, offering new possibilities for improving patient outcomes, reducing costs, and enhancing efficiency.</p>
-    
-    <h2>Revolutionizing Diagnostics</h2>
-    <p>AI algorithms can now analyze medical images like X-rays, MRIs, and CT scans with remarkable accuracy, often detecting subtle abnormalities that might be missed by human eyes. These systems can help identify conditions like cancer, fractures, and neurological disorders at earlier stages when treatment is most effective.</p>
-    
-    <p>Machine learning models trained on vast datasets of patient records can also identify patterns that predict disease risk factors, potentially enabling preventive interventions before symptoms appear.</p>
-    
-    <h2>Personalized Treatment Plans</h2>
-    <p>One of the most promising applications of AI in healthcare is the development of personalized treatment plans. By analyzing a patient's genetic information, medical history, and lifestyle factors, AI can help doctors tailor treatments to individual needs.</p>
-    
-    <p>This approach is already showing promise in oncology, where treatment responses can vary significantly between patients with seemingly similar cancer diagnoses.</p>
-    
-    <h2>Challenges and Ethical Considerations</h2>
-    <p>Despite its potential, the implementation of AI in healthcare faces significant challenges. Data privacy concerns, the need for regulatory frameworks, and questions about the explainability of AI decisions all require careful consideration.</p>
-    
-    <p>Healthcare professionals also emphasize that AI should augment human expertise rather than replace it, maintaining the critical human connection in patient care.</p>
-    
-    <h2>The Future Outlook</h2>
-    <p>As technology continues to evolve, we can expect to see even more sophisticated applications of AI in healthcare. From virtual nursing assistants to robotic surgery and drug discovery, the possibilities are vast.</p>
-    
-    <p>The key to successful implementation will be balancing technological innovation with ethical considerations and human-centered care practices.</p>
-  `,
-  relatedArticles: [
-    {
-      id: 2,
-      title: "New AI Algorithm Detects Alzheimer's Years Before Symptoms",
-      source: "Medical News",
-    },
-    {
-      id: 3,
-      title: "Tech Giants Invest Billions in Healthcare AI Research",
-      source: "Business Insider",
-    },
-  ],
-};
+interface ArticleParams {
+  id: string;
+}
 
 const Article: React.FC = () => {
+  const { id } = useParams<ArticleParams>();
+  const router = useIonRouter();
   const [scrollY, setScrollY] = useState(0);
   const [fontSize, setFontSize] = useState("medium"); // small, medium, large
+  const [newsEvent, setNewsEvent] = useState<NewsEvent | null>(null);
+  const [associatedArticles, setAssociatedArticles] = useState<
+    NewsEventArticleType[]
+  >([]);
+  const [associatedArticlesTotalCount, setAssociatedArticlesTotalCount] =
+    useState<number>();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchNewsEvent = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch the article data
+        const newsEventData = await newsService.getNewsEventById(id);
+        setNewsEvent(newsEventData);
+
+        // If the article belongs to a news event, fetch related articles
+        if (newsEventData.id) {
+          const newsEventArticles = await newsService.getNewsEventArticles(
+            newsEventData.id,
+            5,
+            0
+          );
+          setAssociatedArticlesTotalCount(newsEventArticles.totalCount);
+          setAssociatedArticles(newsEventArticles.articles);
+        }
+      } catch (err) {
+        console.error("Failed to fetch article:", err);
+        setError("Could not load the article. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNewsEvent();
+  }, [id]);
 
   const handleScroll = (event: CustomEvent) => {
     setScrollY(event.detail.scrollTop);
@@ -99,6 +112,116 @@ const Article: React.FC = () => {
   useIonViewDidLeave(() => {
     posthogPageleaveCaptureEvent();
   });
+
+  // Calculate estimated read time (about 200 words per minute)
+  const calculateReadTime = (content: string): string => {
+    if (!content) return "1 min read";
+    const wordCount = content.split(/\s+/).length;
+    const minutes = Math.max(1, Math.ceil(wordCount / 200));
+    return `${minutes} min read`;
+  };
+
+  // Format the publication date
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(date);
+    } catch (e) {
+      return dateString; // Return the original string if parsing fails
+    }
+  };
+
+  // Format the publication date (simplified)
+  const formatDateShort = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+      }).format(date);
+    } catch (e) {
+      return "Invalid Date"; // Handle potential errors
+    }
+  };
+
+  if (loading) {
+    return (
+      <IonPage>
+        <IonHeader>
+          <IonToolbar>
+            <IonButtons slot="start">
+              <IonBackButton
+                defaultHref="/home"
+                icon={arrowBackOutline}
+                text=""
+              />
+            </IonButtons>
+            <IonTitle>Loading Article</IonTitle>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent className="ion-padding">
+          <div className="loading-container">
+            <IonSpinner name="circular" />
+            <p>Loading event...</p>
+          </div>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
+  if (error || !newsEvent) {
+    return (
+      <IonPage>
+        <IonHeader>
+          <IonToolbar>
+            <IonButtons slot="start">
+              <IonBackButton
+                defaultHref="/home"
+                icon={arrowBackOutline}
+                text=""
+              />
+            </IonButtons>
+            <IonTitle>Error</IonTitle>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent className="ion-padding">
+          <div className="error-container">
+            <h2>Sorry, something went wrong</h2>
+            <p>{error || "Could not load the article."}</p>
+            <IonButton routerLink="/home">Back to Home</IonButton>
+          </div>
+        </IonContent>
+        <IonToast
+          isOpen={!!error}
+          message={error || ""}
+          duration={3000}
+          color="danger"
+        />
+      </IonPage>
+    );
+  }
+
+  // Extract the first topic as the category if available, or use a default
+  const category =
+    newsEvent.topics && newsEvent.topics.length > 0
+      ? newsEvent.topics[0].name
+      : "News";
+
+  const readTime = calculateReadTime(newsEvent.summary || "");
+  const formattedDate = formatDate(newsEvent.createdAt);
+
+  // Use default image if none provided
+  const imageUrl =
+    newsEvent.imageUrl || "https://source.unsplash.com/random/1200x600?news";
+
+  // Navigation handler for related articles
+  const handleRelatedArticleClick = (articleId: string) => {
+    router.push(`/article/${articleId}`, "forward", "replace");
+  };
 
   return (
     <IonPage>
@@ -117,7 +240,7 @@ const Article: React.FC = () => {
           <IonTitle
             className={`article-title ${scrollY > 150 ? "visible" : ""}`}
           >
-            {article.title}
+            {newsEvent.title}
           </IonTitle>
 
           <IonButtons slot="end">
@@ -135,86 +258,81 @@ const Article: React.FC = () => {
         fullscreen
         scrollEvents={true}
         onIonScroll={handleScroll}
-        className={`article-content font-size-${fontSize}`}
+        className={`article-content-wrapper font-size-${fontSize}`}
       >
         <div className="article-hero">
-          <img
-            src={article.imageUrl}
-            alt={article.title}
-            className="article-image"
-          />
+          <img src={imageUrl} alt={newsEvent.title} className="article-image" />
           <div className="article-overlay"></div>
-
-          <div className="article-meta">
-            <IonChip color="primary" className="article-category">
-              <IonLabel>{article.category}</IonLabel>
-            </IonChip>
-            <span className="article-read-time">{article.readTime}</span>
-          </div>
         </div>
 
-        <div className="article-container">
-          <div className="article-header-content">
-            <h1>{article.title}</h1>
-            <h2>{article.subtitle}</h2>
-
-            <div className="article-info">
-              <div className="article-source">
-                <span className="article-author">{article.author}</span>
-                <span className="article-source-name"> • {article.source}</span>
+        <div className="article-main-container">
+          <div className="article-container">
+            <div className="article-meta">
+              <IonChip className="article-category">
+                <IonLabel>{category}</IonLabel>
+              </IonChip>
+              <span className="article-read-time">{readTime}</span>
+            </div>
+            <div className="article-header-content">
+              <h1>{newsEvent.title}</h1>
+              <div className="article-info">
+                <span className="article-date">{formattedDate}</span>
+                {associatedArticlesTotalCount && (
+                  <span className="article-source-count">
+                    {associatedArticlesTotalCount} source
+                    {associatedArticlesTotalCount > 1 ? "s" : ""}
+                  </span>
+                )}
               </div>
-              <span className="article-date">{article.date}</span>
             </div>
-          </div>
 
-          {/* Article body content */}
-          <div
-            className="article-body"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-          ></div>
+            {/* Article body content */}
+            <div
+              className="article-body"
+              dangerouslySetInnerHTML={{
+                __html: newsEvent.summary || "<p>No content available</p>",
+              }}
+            ></div>
 
-          {/* Article actions */}
-          <div className="article-actions">
-            <div className="article-reaction">
-              <IonButton fill="clear" className="reaction-button">
-                <IonIcon icon={heartOutline} slot="start" />
-                <span>245</span>
-              </IonButton>
-              <IonButton fill="clear" className="reaction-button">
-                <IonIcon icon={chatbubbleOutline} slot="start" />
-                <span>36</span>
-              </IonButton>
-            </div>
-            <div className="article-share">
-              <IonButton fill="clear" className="share-button">
-                <IonIcon icon={linkOutline} slot="icon-only" />
-              </IonButton>
-              <IonButton fill="clear" className="share-button">
-                <IonIcon icon={shareOutline} slot="icon-only" />
-              </IonButton>
-              <IonButton fill="clear" className="share-button">
-                <IonIcon icon={bookmarkOutline} slot="icon-only" />
-              </IonButton>
-            </div>
-          </div>
-
-          {/* Related articles */}
-          <div className="related-articles">
-            <h3>Related Articles</h3>
-            <div className="related-list">
-              {article.relatedArticles.map((related) => (
-                <div
-                  key={related.id}
-                  className="related-item"
-                  onClick={() =>
-                    (window.location.href = `/article/${related.id}`)
-                  }
-                >
-                  <h4>{related.title}</h4>
-                  <span className="related-source">{related.source}</span>
+            {/* Associated articles */}
+            {associatedArticles.length > 0 && (
+              <div className="related-articles">
+                <div className="related-articles-header">
+                  <h3>Sources</h3>
                 </div>
-              ))}
-            </div>
+                <div className="related-articles-slider">
+                  <Swiper
+                    modules={[FreeMode]}
+                    spaceBetween={12}
+                    slidesPerView="auto"
+                    freeMode={{
+                      sticky: false,
+                      momentumBounce: false,
+                    }}
+                    grabCursor={true}
+                    className="related-swiper-container"
+                  >
+                    {associatedArticles.map((related) => (
+                      <SwiperSlide
+                        key={related.id}
+                        className="related-article-slide"
+                      >
+                        <RelatedArticleCard
+                          id={related.id}
+                          title={related.title}
+                          sourceName={related.sourceName}
+                          publicationDate={formatDateShort(
+                            related.publicationDate
+                          )}
+                          imageUrl={related.imageUrl}
+                          onClick={handleRelatedArticleClick}
+                        />
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

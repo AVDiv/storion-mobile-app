@@ -59,7 +59,6 @@ interface ArticleGroup {
   title: string;
   summary: string;
   keywords: string[];
-  mainEntities: string[];
   createdAt: string;
   updatedAt: string;
   articleCount: number;

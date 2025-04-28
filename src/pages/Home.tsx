@@ -13,8 +13,9 @@ import {
   IonFabButton,
   useIonViewDidEnter,
   useIonViewDidLeave,
+  IonToast,
 } from "@ionic/react";
-import { arrowUpOutline, filterOutline } from "ionicons/icons";
+import { arrowUpOutline } from "ionicons/icons";
 import NewsCard from "../components/NewsCard";
 import HomeHeader from "../components/pages/home/Header";
 import { useAuth } from "../services/auth/authContext";
@@ -23,8 +24,10 @@ import {
   posthogPageleaveCaptureEvent,
   posthogPageviewCaptureEvent,
 } from "../services/analytics/posthogAnalytics";
+import { newsService } from "../services/api/newsService";
+import { Article, NewsEvent } from "../types";
 
-// Mock categories for the filters
+// Categories for the filters
 const categories = [
   "All",
   "Technology",
@@ -36,80 +39,97 @@ const categories = [
   "Entertainment",
 ];
 
-// Mock data for news items
-const mockNewsItems = [
-  {
-    id: 1,
-    title: "The Future of Artificial Intelligence in Healthcare",
-    source: "Tech Today",
-    date: "2h ago",
-    excerpt:
-      "New AI systems are revolutionizing how doctors diagnose and treat patients, leading to faster and more accurate care.",
-    imageUrl: "https://source.unsplash.com/random/1000x600?ai,health",
-    category: "Technology",
-  },
-  {
-    id: 2,
-    title: "Global Markets Rally as New Trade Agreements Finalized",
-    source: "Business Insider",
-    date: "3h ago",
-    excerpt:
-      "Stock markets worldwide saw significant gains today as countries agreed on new international trade policies.",
-    imageUrl: "https://source.unsplash.com/random/1000x600?finance,market",
-    category: "Business",
-  },
-  {
-    id: 3,
-    title: "Breakthrough in Renewable Energy Storage Solutions",
-    source: "Science Daily",
-    date: "5h ago",
-    excerpt:
-      "Researchers have developed a new battery technology that could make renewable energy more reliable and accessible.",
-    imageUrl: "https://source.unsplash.com/random/1000x600?energy,renewable",
-    category: "Science",
-  },
-  {
-    id: 4,
-    title: "Major Sports League Announces Expansion Teams",
-    source: "Sports Network",
-    date: "6h ago",
-    excerpt:
-      "The league will add two new franchises in growing markets, with play scheduled to begin in the next season.",
-    imageUrl: "https://source.unsplash.com/random/1000x600?sports,stadium",
-    category: "Sports",
-  },
-  {
-    id: 5,
-    title: "New Treatment Shows Promise for Chronic Condition",
-    source: "Health Journal",
-    date: "8h ago",
-    excerpt:
-      "Clinical trials have demonstrated significant improvement in patients suffering from the previously difficult-to-treat illness.",
-    imageUrl: "https://source.unsplash.com/random/1000x600?medicine,health",
-    category: "Health",
-  },
-];
-
 const Home: React.FC = () => {
   const { user } = useAuth();
   const [selectedSegment, setSelectedSegment] = useState<string>("trending");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [newsItems, setNewsItems] = useState<any[]>([]);
+  const [newsItems, setNewsItems] = useState<Article[]>([]);
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
   const [scrollY, setScrollY] = useState(0);
   const [isHeaderTranslucent, setIsHeaderTranslucent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Simulate data loading
+  // Load news data based on the selected segment and category
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setNewsItems(mockNewsItems);
-      setIsLoading(false);
-    }, 1500);
+    const fetchNewsData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-    return () => clearTimeout(timer);
+        let fetchedNews: NewsEvent[] = [];
+
+        // Fetch data based on selected segment
+        if (selectedSegment === "trending") {
+          fetchedNews = await newsService.getTrendingNewsEvents();
+        } else if (selectedSegment === "latest") {
+          fetchedNews = await newsService.getLatestNewsEvents();
+        } else if (selectedSegment === "following") {
+          // For "following", we would need a different endpoint or parameter
+          // As a fallback, just use latest news
+          fetchedNews = await newsService.getLatestNewsEvents();
+        }
+
+        // If a category is selected (other than "All"), filter by category
+        if (selectedCategory !== "All") {
+          fetchedNews = await newsService.getNewsByCategory(selectedCategory);
+        }
+
+        // For each news event, get the first article to display
+        const articlesPromises = fetchedNews.map(async (newsEvent) => {
+          try {
+            const articlesData = await newsService.getNewsEventArticles(
+              newsEvent.id,
+              1,
+              0
+            );
+            if (articlesData.articles.length > 0) {
+              const article = articlesData.articles[0];
+
+              // Format the article data to match what NewsCard expects
+              return {
+                ...article,
+                id: article.id,
+                title: article.title,
+                source: article.sourceName || "Unknown Source",
+                date: formatRelativeTime(article.publicationDate),
+                excerpt: article.excerpt || newsEvent.summary,
+                imageUrl:
+                  article.imageUrl ||
+                  "https://source.unsplash.com/random/1000x600?news",
+                category:
+                  newsEvent.topics && newsEvent.topics.length > 0
+                    ? newsEvent.topics[0].name
+                    : "News",
+                newsEventId: newsEvent.id,
+              };
+            }
+            return null;
+          } catch (err) {
+            console.error(
+              `Failed to fetch articles for news event ${newsEvent.id}:`,
+              err
+            );
+            return null;
+          }
+        });
+
+        const articleResults = await Promise.all(articlesPromises);
+        const validArticles = articleResults.filter(
+          (article) => article !== null
+        ) as Article[];
+
+        setNewsItems(validArticles);
+      } catch (err) {
+        console.error("Failed to fetch news:", err);
+        setError("Could not load news. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNewsData();
   }, [selectedSegment, selectedCategory]);
 
   useIonViewDidEnter(() => {
@@ -120,6 +140,42 @@ const Home: React.FC = () => {
     posthogPageleaveCaptureEvent();
   });
 
+  // Format relative time (e.g., "2h ago")
+  const formatRelativeTime = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+      if (diffInSeconds < 60) {
+        return "Just now";
+      }
+
+      const diffInMinutes = Math.floor(diffInSeconds / 60);
+      if (diffInMinutes < 60) {
+        return `${diffInMinutes}m ago`;
+      }
+
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      if (diffInHours < 24) {
+        return `${diffInHours}h ago`;
+      }
+
+      const diffInDays = Math.floor(diffInHours / 24);
+      if (diffInDays < 7) {
+        return `${diffInDays}d ago`;
+      }
+
+      // For older articles, just return the date
+      return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+      }).format(date);
+    } catch (e) {
+      return "Unknown date";
+    }
+  };
+
   // Handle scroll to show/hide scroll-to-top button and set header translucency
   const handleScroll = (e: CustomEvent) => {
     const scrollTop = e.detail.scrollTop;
@@ -129,13 +185,62 @@ const Home: React.FC = () => {
   };
 
   // Handle pull-to-refresh
-  const handleRefresh = (event: CustomEvent) => {
+  const handleRefresh = async (event: CustomEvent) => {
     setIsLoading(true);
-    setTimeout(() => {
-      setNewsItems(mockNewsItems);
+    try {
+      let fetchedNews: NewsEvent[] = [];
+
+      if (selectedSegment === "trending") {
+        fetchedNews = await newsService.getTrendingNewsEvents();
+      } else if (selectedSegment === "latest") {
+        fetchedNews = await newsService.getLatestNewsEvents();
+      } else {
+        fetchedNews = await newsService.getLatestNewsEvents();
+      }
+
+      if (selectedCategory !== "All") {
+        fetchedNews = await newsService.getNewsByCategory(selectedCategory);
+      }
+
+      const articlesPromises = fetchedNews.map(async (newsEvent) => {
+        const articlesData = await newsService.getNewsEventArticles(
+          newsEvent.id,
+          1,
+          0
+        );
+        if (articlesData.articles.length > 0) {
+          const article = articlesData.articles[0];
+          return {
+            ...article,
+            source: article.sourceName || "Unknown Source",
+            date: formatRelativeTime(article.publicationDate),
+            excerpt: article.excerpt || newsEvent.summary,
+            imageUrl:
+              article.imageUrl ||
+              "https://source.unsplash.com/random/1000x600?news",
+            category:
+              newsEvent.topics && newsEvent.topics.length > 0
+                ? newsEvent.topics[0].name
+                : "News",
+            newsEventId: newsEvent.id,
+          };
+        }
+        return null;
+      });
+
+      const articleResults = await Promise.all(articlesPromises);
+      const validArticles = articleResults.filter(
+        (article) => article !== null
+      ) as Article[];
+      setNewsItems(validArticles);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to refresh news:", err);
+      setError("Could not refresh news. Please try again later.");
+    } finally {
       setIsLoading(false);
       event.detail.complete();
-    }, 1500);
+    }
   };
 
   // Scroll to top function
@@ -144,22 +249,24 @@ const Home: React.FC = () => {
     content?.scrollToTop(500);
   };
 
-  // Filter news based on search query and category
+  // Filter news based on search query
   const filteredNews = newsItems.filter((item) => {
     const matchesSearch = searchQuery
       ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+        (item.excerpt?.toLowerCase().includes(searchQuery.toLowerCase()) ??
+          false)
       : true;
 
-    const matchesCategory =
-      selectedCategory === "All" || item.category === selectedCategory;
-
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
 
   return (
     <IonPage>
-      <HomeHeader isTranslucent={isHeaderTranslucent} userName={user?.name} />
+      <HomeHeader
+        isTranslucent={isHeaderTranslucent}
+        userName={user?.name}
+        onSearchQueryChange={setSearchQuery}
+      />
 
       <IonContent
         className="page-transition"
@@ -226,9 +333,9 @@ const Home: React.FC = () => {
                 <NewsCard
                   key={item.id}
                   title={item.title}
-                  source={item.source}
+                  source={item.source || item.sourceName || "Unknown Source"}
                   date={item.date}
-                  excerpt={item.excerpt}
+                  excerpt={item.excerpt || ""}
                   imageUrl={item.imageUrl}
                   category={item.category}
                   onClick={() => (window.location.href = `/article/${item.id}`)}
@@ -250,6 +357,13 @@ const Home: React.FC = () => {
             </IonFabButton>
           </IonFab>
         )}
+
+        <IonToast
+          isOpen={!!error}
+          message={error || ""}
+          duration={3000}
+          color="danger"
+        />
       </IonContent>
     </IonPage>
   );
