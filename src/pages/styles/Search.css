@@ -30,7 +30,6 @@
 
 .search-container {
   padding: 8px 16px;
-  position: sticky;
   top: 0;
   z-index: 1000;
   background: var(--ion-background-color);
@@ -38,12 +37,13 @@
 
 .custom-searchbar {
   --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --background: rgba(var(--ion-background-color-rgb), 0.8);
+  --background: var(--ion-item-background);
   --border-radius: 12px;
   --placeholder-color: var(--ion-color-medium);
   --placeholder-opacity: 0.8;
   --cancel-button-color: var(--ion-color-primary);
   --clear-button-color: var(--ion-color-medium);
+  --color: var(--ion-text-color);
   padding: 0;
 }
 
@@ -123,7 +123,7 @@
 .search-help {
   padding: 16px;
   margin: 16px;
-  background: rgba(var(--ion-color-light-rgb), 0.6);
+  background: rgba(var(--ion-background-color-step-550-rgb), 0.1);
   border-radius: 12px;
   border: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
 }
@@ -157,7 +157,7 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: var(--ion-text-color);
+  color: var(--ion-text-color-step-550);
 }
 
 .results-count {

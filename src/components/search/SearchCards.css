@@ -1,0 +1,59 @@
+/* SearchCards.css - Styling for search result components */
+
+/* Topic Card Styling */
+.result-topic-chip {
+  margin: 8px 6px;
+  font-size: 14px;
+  height: auto;
+  padding: 10px;
+  background: rgba(var(--ion-color-secondary-rgb), 0.1);
+}
+
+.article-count {
+  margin-left: 8px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Source Card Styling */
+.source-card-item {
+  --border-width: 1px;
+  --border-color: var(--ion-background-color-step-150);
+}
+
+.source-card-item h2 {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.source-card-item p {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+}
+
+.source-stats {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  padding: 0 10px;
+}
+
+/* Common styling */
+.topics-results {
+  padding-inline: 8px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.sources-list {
+  margin-top: 0;
+  margin-inline: 12px;
+  background: none !important;
+}
+
+/* Section styling */
+.search-section-title {
+  margin: 20px 16px 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ion-text-color);
+}

@@ -3,24 +3,26 @@ import {
   IonPage,
   IonSearchbar,
   IonList,
-  IonItem,
   IonLabel,
   IonChip,
-  IonSegment,
-  IonSegmentButton,
-  IonIcon,
   useIonViewDidEnter,
   useIonViewDidLeave,
 } from "@ionic/react";
 import { useState } from "react";
 import PageHeader from "../components/PageHeader";
 import NewsCard from "../components/NewsCard";
-import { trendingUpOutline, timeOutline, flame } from "ionicons/icons";
 import "./styles/Search.css";
 import {
+  posthogCaptureEvent,
   posthogPageleaveCaptureEvent,
   posthogPageviewCaptureEvent,
 } from "../services/analytics/posthogAnalytics";
+import { apiService } from "../services/api/apiService";
+
+// Import our new component files
+import ArticleCard from "../components/search/ArticleCard";
+import TopicCard from "../components/search/TopicCard";
+import SourceCard from "../components/search/SourceCard";
 
 // Trending search terms
 const trendingSearches = [
@@ -51,16 +53,60 @@ const suggestedTopics = [
   "Sports",
 ];
 
-const Search: React.FC = () => {
-  const [scrollY, setScrollY] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("trending");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+// Define interfaces for search API response types
+interface ArticleGroup {
+  id: string;
+  title: string;
+  summary: string;
+  keywords: string[];
+  mainEntities: string[];
+  createdAt: string;
+  updatedAt: string;
+  articleCount: number;
+  topics: Array<{ name: string; score: number }>;
+  relevanceScore: number;
+}
 
-  const handleScroll = (event: CustomEvent) => {
-    setScrollY(event.detail.scrollTop);
-  };
+interface Topic {
+  name: string;
+  description: string;
+  createdAt: string;
+  articleGroupCount: number;
+  relevanceScore: number;
+}
+
+interface Source {
+  id: string;
+  name: string;
+  domain: string;
+  createdAt: string;
+  updatedAt: string;
+  articleCount: number;
+  relevanceScore: number;
+}
+
+interface SearchResponse {
+  articleGroups: ArticleGroup[];
+  topics: Topic[];
+  sources: Source[];
+  total: number;
+}
+
+interface Section {
+  type: "articleGroups" | "topics" | "sources";
+  title: string;
+  data: ArticleGroup[] | Topic[] | Source[];
+  relevanceScore: number;
+}
+
+const Search: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResponse | null>(
+    null
+  );
+  const [sections, setSections] = useState<Section[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useIonViewDidEnter(() => {
     posthogPageviewCaptureEvent();
@@ -70,12 +116,32 @@ const Search: React.FC = () => {
     posthogPageleaveCaptureEvent();
   });
 
-  // Simulate search action
-  const handleSearch = (query: string) => {
+  // Calculate the highest relevance score for each section
+  const getSectionRelevanceScore = (items: any[]): number => {
+    if (!items || items.length === 0) return 0;
+    return Math.max(...items.map((item) => item.relevanceScore || 0));
+  };
+
+  // Sort sections by relevance score with priority for equal scores
+  const sortSections = (sections: Section[]): Section[] => {
+    return sections.sort((a, b) => {
+      if (b.relevanceScore === a.relevanceScore) {
+        // If scores are equal, use priority: 1.Topic, 2.Source, 3.Article
+        const priority = { topics: 1, sources: 2, articleGroups: 3 };
+        return priority[a.type] - priority[b.type];
+      }
+      return b.relevanceScore - a.relevanceScore;
+    });
+  };
+
+  // Search using the API
+  const handleSearch = async (query: string) => {
     setSearchQuery(query);
+    setError(null);
 
     if (query.trim() === "") {
-      setSearchResults([]);
+      setSearchResults(null);
+      setSections([]);
       setIsSearching(false);
       return;
     }
@@ -83,37 +149,57 @@ const Search: React.FC = () => {
     // Show loading state
     setIsSearching(true);
 
-    // Simulate API call with timeout
-    setTimeout(() => {
-      // Mock results based on query
-      const mockResults = [
-        {
-          id: 101,
-          title: `Latest on ${query}: New Developments`,
-          source: "Tech Journal",
-          date: "2h ago",
-          excerpt: `Recent advancements in ${query} have shown promising results for future applications in various industries.`,
-          imageUrl: `https://source.unsplash.com/random/1000x600?${query.replace(
-            /\s+/g,
-            ","
-          )}`,
-        },
-        {
-          id: 102,
-          title: `The Impact of ${query} on Global Economy`,
-          source: "Economy Today",
-          date: "5h ago",
-          excerpt: `Analysts predict that ${query} will significantly influence market trends in the coming years.`,
-          imageUrl: `https://source.unsplash.com/random/1000x600?business,${query.replace(
-            /\s+/g,
-            ","
-          )}`,
-        },
-      ];
+    try {
+      // Call the search API endpoint
+      const response = await apiService.get<SearchResponse>(
+        `/search?query=${encodeURIComponent(query)}&type=all&limit=20`
+      );
+      setSearchResults(response);
 
-      setSearchResults(mockResults);
+      if (response) posthogCaptureEvent("user.search", { query });
+
+      // Create sections and sort them by relevance score
+      const newSections: Section[] = [];
+
+      if (response.articleGroups && response.articleGroups.length > 0) {
+        newSections.push({
+          type: "articleGroups",
+          title: "Articles",
+          data: response.articleGroups,
+          relevanceScore: getSectionRelevanceScore(response.articleGroups),
+        });
+      }
+
+      if (response.topics && response.topics.length > 0) {
+        newSections.push({
+          type: "topics",
+          title: "Topics",
+          data: response.topics,
+          relevanceScore: getSectionRelevanceScore(response.topics),
+        });
+      }
+
+      if (response.sources && response.sources.length > 0) {
+        newSections.push({
+          type: "sources",
+          title: "Sources",
+          data: response.sources,
+          relevanceScore: getSectionRelevanceScore(response.sources),
+        });
+      }
+
+      // Sort sections by relevance score with priority rules
+      setSections(sortSections(newSections));
+    } catch (error) {
+      console.error("Search API error:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to perform search"
+      );
+      setSearchResults(null);
+      setSections([]);
+    } finally {
       setIsSearching(false);
-    }, 1000);
+    }
   };
 
   // Handle clicking on a trending or recent search
@@ -122,15 +208,38 @@ const Search: React.FC = () => {
     handleSearch(term);
   };
 
+  // Generate a placeholder image based on text
+  const getPlaceholderImage = (text: string): string => {
+    return `https://source.unsplash.com/random/1000x600?${text.replace(
+      /\s+/g,
+      ","
+    )}`;
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+
+      if (diffHrs < 24) {
+        return `${diffHrs}h ago`;
+      } else {
+        const diffDays = Math.floor(diffHrs / 24);
+        return `${diffDays}d ago`;
+      }
+    } catch (e) {
+      return "Recent";
+    }
+  };
+
   return (
     <IonPage>
       <PageHeader title="Search" showSearch={false} />
 
-      <IonContent
-        className="search-page"
-        scrollEvents={true}
-        onIonScroll={handleScroll}
-      >
+      <IonContent className="search-page" scrollEvents={true}>
         <div className="search-container">
           <IonSearchbar
             value={searchQuery}
@@ -146,80 +255,18 @@ const Search: React.FC = () => {
         {!searchQuery ? (
           <>
             <div className="search-suggestions">
-              <IonSegment
-                value={activeTab}
-                onIonChange={(e) => setActiveTab(e.detail.value as string)}
-                className="search-tabs"
-              >
-                <IonSegmentButton value="trending">
-                  <IonIcon icon={trendingUpOutline} />
-                  <IonLabel>Trending</IonLabel>
-                </IonSegmentButton>
-                <IonSegmentButton value="recent">
-                  <IonIcon icon={timeOutline} />
-                  <IonLabel>Recent</IonLabel>
-                </IonSegmentButton>
-                <IonSegmentButton value="topics">
-                  <IonIcon icon={flame} />
-                  <IonLabel>Topics</IonLabel>
-                </IonSegmentButton>
-              </IonSegment>
-
-              {activeTab === "trending" && (
-                <div className="search-chips">
-                  {trendingSearches.map((term) => (
-                    <IonChip
-                      key={term}
-                      color="primary"
-                      outline={true}
-                      onClick={() => handleSearchClick(term)}
-                    >
-                      <IonLabel>{term}</IonLabel>
-                    </IonChip>
-                  ))}
-                </div>
-              )}
-
-              {activeTab === "recent" && (
-                <IonList lines="full" className="recent-searches">
-                  {recentSearches.length > 0 ? (
-                    recentSearches.map((term) => (
-                      <IonItem
-                        key={term}
-                        detail={true}
-                        button
-                        onClick={() => handleSearchClick(term)}
-                      >
-                        <IonIcon
-                          icon={timeOutline}
-                          slot="start"
-                          color="medium"
-                        />
-                        <IonLabel>{term}</IonLabel>
-                      </IonItem>
-                    ))
-                  ) : (
-                    <div className="no-results">
-                      <p>No recent searches</p>
-                    </div>
-                  )}
-                </IonList>
-              )}
-
-              {activeTab === "topics" && (
-                <div className="search-chips topics">
-                  {suggestedTopics.map((topic) => (
-                    <IonChip
-                      key={topic}
-                      color="secondary"
-                      onClick={() => handleSearchClick(topic)}
-                      className="topic-chip"
-                    >
-                      <IonLabel>{topic}</IonLabel>
-                    </IonChip>
-                  ))}
-                </div>
-              )}
+              <div className="search-chips">
+                {trendingSearches.map((term) => (
+                  <IonChip
+                    key={term}
+                    color="primary"
+                    outline={true}
+                    onClick={() => handleSearchClick(term)}
+                  >
+                    <IonLabel>{term}</IonLabel>
+                  </IonChip>
+                ))}
+              </div>
             </div>
 
             <div className="search-help">
@@ -234,7 +281,7 @@ const Search: React.FC = () => {
           <div className="search-results">
             {isSearching ? (
               // Show skeleton loaders while searching
-              Array(2)
+              Array(3)
                 .fill(null)
                 .map((_, index) => (
                   <NewsCard
@@ -246,28 +293,57 @@ const Search: React.FC = () => {
                     excerpt=""
                   />
                 ))
-            ) : searchResults.length > 0 ? (
-              // Show search results
+            ) : error ? (
+              // Show error message
+              <div className="search-error">
+                <h3>Error</h3>
+                <p>{error}</p>
+              </div>
+            ) : sections.length > 0 ? (
+              // Show search results organized by sections
               <>
                 <div className="results-header">
                   <h4>Results for "{searchQuery}"</h4>
                   <span className="results-count">
-                    {searchResults.length} articles
+                    {searchResults?.total || 0} results
                   </span>
                 </div>
 
-                {searchResults.map((item) => (
-                  <NewsCard
-                    key={item.id}
-                    title={item.title}
-                    source={item.source}
-                    date={item.date}
-                    excerpt={item.excerpt}
-                    imageUrl={item.imageUrl}
-                    onClick={() =>
-                      (window.location.href = `/article/${item.id}`)
-                    }
-                  />
+                {sections.map((section, sectionIndex) => (
+                  <div
+                    key={`section-${section.type}-${sectionIndex}`}
+                    className="result-section"
+                  >
+                    <h3 className="search-section-title">{section.title}</h3>
+
+                    {section.type === "articleGroups" && (
+                      <div className="articles-list">
+                        {(section.data as ArticleGroup[]).map((article) => (
+                          <ArticleCard key={article.id} article={article} />
+                        ))}
+                      </div>
+                    )}
+
+                    {section.type === "topics" && (
+                      <div className="topics-results">
+                        {(section.data as Topic[]).map((topic) => (
+                          <TopicCard
+                            key={topic.name}
+                            topic={topic}
+                            onClick={handleSearchClick}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {section.type === "sources" && (
+                      <IonList lines="full" className="sources-list">
+                        {(section.data as Source[]).map((source) => (
+                          <SourceCard key={source.id} source={source} />
+                        ))}
+                      </IonList>
+                    )}
+                  </div>
                 ))}
               </>
             ) : (

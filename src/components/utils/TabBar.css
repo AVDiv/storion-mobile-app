@@ -11,6 +11,7 @@ ion-tab-bar {
   column-gap: 20px;
   position: relative;
   overflow: visible;
+  z-index: 1;
 }
 
 ion-tab-button {
