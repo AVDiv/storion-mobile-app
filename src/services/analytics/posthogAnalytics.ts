@@ -62,14 +62,18 @@ export const posthogAlias = async (alias: string) => {
   }
 };
 
-export const posthogPageviewCaptureEvent = async () => {
+export const posthogPageviewCaptureEvent = async (
+  other_properties: any = {}
+) => {
   if (!(await isTelemetryEnabled())) return;
   try {
+    console.log("posthogPageviewCaptureEvent", other_properties);
     await Posthog.capture({
       event: "$pageview",
       properties: {
         $current_url: window.location.href,
         $title: document.title,
+        ...other_properties,
       },
     });
   } catch (error) {

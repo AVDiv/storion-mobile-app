@@ -58,6 +58,7 @@ const Article: React.FC = () => {
   const [scrollY, setScrollY] = useState(0);
   const [fontSize, setFontSize] = useState("medium"); // small, medium, large
   const [newsEvent, setNewsEvent] = useState<NewsEvent | null>(null);
+  const [wasViewUpdated, setWasViewUpdated] = useState(false);
   const [associatedArticles, setAssociatedArticles] = useState<
     NewsEventArticleType[]
   >([]);
@@ -97,6 +98,18 @@ const Article: React.FC = () => {
     fetchNewsEvent();
   }, [id]);
 
+  useEffect(() => {
+    if (newsEvent && !loading && !wasViewUpdated) {
+      posthogPageviewCaptureEvent({
+        article_id: newsEvent.id,
+        article_tags: newsEvent.keywords,
+        article_title: newsEvent.title,
+        article_categories: newsEvent.topics,
+      });
+      setWasViewUpdated(true);
+    }
+  }, [newsEvent, loading, wasViewUpdated]);
+
   const handleScroll = (event: CustomEvent) => {
     setScrollY(event.detail.scrollTop);
   };
@@ -104,10 +117,6 @@ const Article: React.FC = () => {
   const changeFontSize = (size: string) => {
     setFontSize(size);
   };
-
-  useIonViewDidEnter(() => {
-    posthogPageviewCaptureEvent();
-  });
 
   useIonViewDidLeave(() => {
     posthogPageleaveCaptureEvent();
