@@ -25,7 +25,7 @@ import {
   posthogPageviewCaptureEvent,
 } from "../services/analytics/posthogAnalytics";
 import { newsService } from "../services/api/newsService";
-import { Article, NewsEvent } from "../types";
+import { NewsEvent } from "../types";
 
 // Categories for the filters
 const categories = [
@@ -45,7 +45,7 @@ const Home: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [newsItems, setNewsItems] = useState<Article[]>([]);
+  const [newsItems, setNewsItems] = useState<NewsEvent[]>([]);
   const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
   const [scrollY, setScrollY] = useState(0);
   const [isHeaderTranslucent, setIsHeaderTranslucent] = useState(false);
@@ -76,51 +76,12 @@ const Home: React.FC = () => {
           fetchedNews = await newsService.getNewsByCategory(selectedCategory);
         }
 
-        // For each news event, get the first article to display
-        const articlesPromises = fetchedNews.map(async (newsEvent) => {
-          try {
-            const articlesData = await newsService.getNewsEventArticles(
-              newsEvent.id,
-              1,
-              0
-            );
-            if (articlesData.articles.length > 0) {
-              const article = articlesData.articles[0];
+        // const articleResults = await Promise.all(articlesPromises);
+        // const validArticles = articleResults.filter(
+        //   (article) => article !== null
+        // ) as NewsEvent[];
 
-              // Format the article data to match what NewsCard expects
-              return {
-                ...article,
-                id: article.id,
-                title: article.title,
-                source: article.sourceName || "Unknown Source",
-                date: formatRelativeTime(article.publicationDate),
-                excerpt: article.excerpt || newsEvent.summary,
-                imageUrl:
-                  article.imageUrl ||
-                  "https://source.unsplash.com/random/1000x600?news",
-                category:
-                  newsEvent.topics && newsEvent.topics.length > 0
-                    ? newsEvent.topics[0].name
-                    : "News",
-                newsEventId: newsEvent.id,
-              };
-            }
-            return null;
-          } catch (err) {
-            console.error(
-              `Failed to fetch articles for news event ${newsEvent.id}:`,
-              err
-            );
-            return null;
-          }
-        });
-
-        const articleResults = await Promise.all(articlesPromises);
-        const validArticles = articleResults.filter(
-          (article) => article !== null
-        ) as Article[];
-
-        setNewsItems(validArticles);
+        // setNewsItems(validArticles);
       } catch (err) {
         console.error("Failed to fetch news:", err);
         setError("Could not load news. Please try again later.");
@@ -214,7 +175,6 @@ const Home: React.FC = () => {
             ...article,
             source: article.sourceName || "Unknown Source",
             date: formatRelativeTime(article.publicationDate),
-            excerpt: article.excerpt || newsEvent.summary,
             imageUrl:
               article.imageUrl ||
               "https://source.unsplash.com/random/1000x600?news",
@@ -228,11 +188,11 @@ const Home: React.FC = () => {
         return null;
       });
 
-      const articleResults = await Promise.all(articlesPromises);
-      const validArticles = articleResults.filter(
-        (article) => article !== null
-      ) as Article[];
-      setNewsItems(validArticles);
+      // const articleResults = await Promise.all(articlesPromises);
+      // const validArticles = articleResults.filter(
+      //   (article) => article !== null
+      // ) as NewsEvent[];
+      // setNewsItems(validArticles);
       setError(null);
     } catch (err) {
       console.error("Failed to refresh news:", err);
@@ -253,7 +213,7 @@ const Home: React.FC = () => {
   const filteredNews = newsItems.filter((item) => {
     const matchesSearch = searchQuery
       ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (item.excerpt?.toLowerCase().includes(searchQuery.toLowerCase()) ??
+        (item.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ??
           false)
       : true;
 
@@ -262,11 +222,7 @@ const Home: React.FC = () => {
 
   return (
     <IonPage>
-      <HomeHeader
-        isTranslucent={isHeaderTranslucent}
-        userName={user?.name}
-        onSearchQueryChange={setSearchQuery}
-      />
+      <HomeHeader isTranslucent={isHeaderTranslucent} userName={user?.name} />
 
       <IonContent
         className="page-transition"
@@ -333,11 +289,11 @@ const Home: React.FC = () => {
                 <NewsCard
                   key={item.id}
                   title={item.title}
-                  source={item.source || item.sourceName || "Unknown Source"}
-                  date={item.date}
-                  excerpt={item.excerpt || ""}
+                  source={""}
+                  date={item.createdAt}
+                  excerpt={item.summary || ""}
                   imageUrl={item.imageUrl}
-                  category={item.category}
+                  category={item.topics[0]["name"]}
                   onClick={() => (window.location.href = `/article/${item.id}`)}
                 />
               ))

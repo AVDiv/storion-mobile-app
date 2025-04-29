@@ -67,7 +67,7 @@ const Profile: React.FC = () => {
               <p>{user.email}</p>
             </div>
 
-            <IonCard>
+            <IonCard className="profile-card">
               <IonCardHeader>
                 <IonCardTitle>Account</IonCardTitle>
               </IonCardHeader>

@@ -153,7 +153,6 @@ const Login: React.FC = () => {
             >
               {isLoading ? (
                 <div className="loading-container">
-                  <div className="button-spinner"></div>
                   <span>Logging in...</span>
                 </div>
               ) : (

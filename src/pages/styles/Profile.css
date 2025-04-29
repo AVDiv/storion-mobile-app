@@ -16,7 +16,7 @@
   width: 90px;
   height: 90px;
   margin-bottom: 16px;
-  border: 3px solid var(--ion-color-light);
+  border: 3px solid var(--ion-background-color-step-150);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -24,11 +24,28 @@
   margin: 8px 0;
   font-size: 24px;
   font-weight: 600;
-  color: var(--ion-color-dark);
+  color: var(--ion-text-color);
 }
 
 .profile-header p {
   margin: 0;
   font-size: 16px;
-  color: var(--ion-color-medium);
+  color: var(--ion-text-color-step-450);
+}
+
+.profile-card {
+  background-color: rgba(var(--ion-background-color-step-250-rgb), 0.15);
+}
+
+.profile-card ion-card-content ion-list {
+  background-color: transparent;
+}
+
+.profile-card ion-card-content ion-list ion-item {
+  --background: rgba(var(--ion-background-color-step-250-rgb), 0.2);
+  --border-color: transparent;
+  --color: var(--ion-text-color-step-250);
+  --padding-top: 3px;
+  --padding-bottom: 3px;
+  margin-bottom: 10px;
 }

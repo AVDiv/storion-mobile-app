@@ -1,5 +1,5 @@
 import { apiService } from "./apiService";
-import { Article, NewsEvent, NewsEventArticlesResponse } from "../../types";
+import { NewsEvent, NewsEventArticlesResponse } from "../../types";
 
 /**
  * Service for interacting with the News Events API
