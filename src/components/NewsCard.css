@@ -51,23 +51,11 @@
   font-size: 14px;
 }
 
-.news-card-excerpt {
-  margin-bottom: 16px;
-  color: var(--ion-color-step-650);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .news-card-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--ion-color-light-shade);
+  margin-top: 0px;
 }
 
 .action-button {

@@ -80,6 +80,65 @@ class NewsService {
       `/news-events/category/${category}?limit=${limit}&offset=${offset}`
     );
   }
+
+  /**
+   * Get personalized feed content based on the specified parameters
+   * @param queryString - Query parameters from the Feed API
+   * @returns Array of news events
+   */
+  async getFeedContent(queryString: string): Promise<NewsEvent[]> {
+    try {
+      const response = await apiService.get(`/feed?${queryString}`);
+
+      if (!response || !response.articleGroups) {
+        return [];
+      }
+
+      // Transform the articleGroups data into the NewsEvent format
+      return response.articleGroups.map((group: any) => ({
+        id: group.id,
+        title: group.title,
+        summary: group.description || "",
+        topics: group.topics || [],
+        imageUrl: group.imageUrl || this.getRandomPlaceholderImage(group.title),
+        createdAt: group.createdAt,
+        updatedAt: group.updatedAt,
+      }));
+    } catch (error) {
+      console.error("Failed to fetch feed content:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a random placeholder image for an article based on its title
+   * @param title The article title to use for generating image
+   * @returns URL to a placeholder image
+   */
+  private getRandomPlaceholderImage(title: string): string {
+    // Use the title to generate a consistent but seemingly random image for the same content
+    const titleHash = this.simpleHash(title);
+    const imageId = titleHash % 1000; // Limit to 1000 possible images
+    return `https://source.unsplash.com/random/800x600?news,${imageId}`;
+  }
+
+  /**
+   * Create a simple hash from a string
+   * @param str The string to hash
+   * @returns A numeric hash value
+   */
+  private simpleHash(str: string): number {
+    let hash = 0;
+    if (str.length === 0) return hash;
+
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+
+    return Math.abs(hash);
+  }
 }
 
 export const newsService = new NewsService();

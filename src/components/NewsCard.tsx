@@ -19,12 +19,12 @@ import {
   caretForwardCircle,
 } from "ionicons/icons";
 import "./NewsCard.css";
+import calculateTimeAgo from "../utils/time";
 
 interface NewsCardProps {
   title: string;
-  source: string;
+  sources: number;
   date: string;
-  excerpt: string;
   imageUrl?: string;
   category?: string;
   loading?: boolean;
@@ -33,15 +33,21 @@ interface NewsCardProps {
 
 const NewsCard: React.FC<NewsCardProps> = ({
   title,
-  source,
+  sources,
   date,
-  excerpt,
   imageUrl,
   category,
   loading = false,
   onClick,
 }) => {
   const cardRef = React.useRef<HTMLIonCardElement>(null);
+  const newsEventDate = date ? new Date(date) : "";
+  const oneWeekAgo = new Date(Date.now() - 604800000); // 7 days in milliseconds
+  const formattedDate = newsEventDate
+    ? newsEventDate < oneWeekAgo
+      ? newsEventDate.toLocaleDateString("en-US", { dateStyle: "long" })
+      : calculateTimeAgo(newsEventDate)
+    : "Unknown date";
 
   React.useEffect(() => {
     if (cardRef.current) {
@@ -93,18 +99,16 @@ const NewsCard: React.FC<NewsCardProps> = ({
 
       <IonCardHeader>
         <IonCardSubtitle className="news-card-source">
-          <span>{source}</span>
+          <span>{sources} Sources</span>
           <span className="news-card-date">
             <IonIcon icon={timeOutline} />
-            {date}
+            {newsEventDate ? formattedDate : "Unknown date"}
           </span>
         </IonCardSubtitle>
         <IonCardTitle>{title}</IonCardTitle>
       </IonCardHeader>
 
       <IonCardContent>
-        <p className="news-card-excerpt">{excerpt}</p>
-
         <div className="news-card-actions">
           <IonButton fill="clear" size="small" className="action-button">
             <IonIcon slot="start" icon={bookmarkOutline} />

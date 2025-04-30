@@ -14,8 +14,9 @@ import {
   useIonViewDidEnter,
   useIonViewDidLeave,
   IonToast,
+  IonSkeletonText,
 } from "@ionic/react";
-import { arrowUpOutline } from "ionicons/icons";
+import { apps, arrowUpOutline, sparkles } from "ionicons/icons";
 import NewsCard from "../components/NewsCard";
 import HomeHeader from "../components/pages/home/Header";
 import { useAuth } from "../services/auth/authContext";
@@ -29,19 +30,19 @@ import { NewsEvent } from "../types";
 
 // Categories for the filters
 const categories = [
-  "All",
-  "Technology",
-  "Science",
-  "Business",
-  "Politics",
-  "Health",
-  "Sports",
-  "Entertainment",
+  [apps, "All"],
+  [null, "Technology"],
+  [null, "Science"],
+  [null, "Business"],
+  [null, "Politics"],
+  [null, "Health"],
+  [null, "Sports"],
+  [null, "Entertainment"],
 ];
 
 const Home: React.FC = () => {
   const { user } = useAuth();
-  const [selectedSegment, setSelectedSegment] = useState<string>("trending");
+  const [selectedSegment, setSelectedSegment] = useState<string>("forYou");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -59,29 +60,59 @@ const Home: React.FC = () => {
         setError(null);
 
         let fetchedNews: NewsEvent[] = [];
+        let feedType: string;
 
-        // Fetch data based on selected segment
-        if (selectedSegment === "trending") {
-          fetchedNews = await newsService.getTrendingNewsEvents();
-        } else if (selectedSegment === "latest") {
-          fetchedNews = await newsService.getLatestNewsEvents();
-        } else if (selectedSegment === "following") {
-          // For "following", we would need a different endpoint or parameter
-          // As a fallback, just use latest news
-          fetchedNews = await newsService.getLatestNewsEvents();
+        // Map selected segment to Feed API type parameter
+        switch (selectedSegment) {
+          case "forYou":
+            feedType = "recommended";
+            break;
+          case "trending":
+            feedType = "trending";
+            break;
+          case "latest":
+            feedType = "latest";
+            break;
+          default:
+            feedType = "mixed";
         }
 
-        // If a category is selected (other than "All"), filter by category
+        // Build query parameters for the Feed API
+        const params = new URLSearchParams();
+        params.append("type", feedType);
+        params.append("timeRange", "week");
+        params.append("limit", "20");
+        params.append("offset", "0");
+        params.append("excludeRead", "true");
+
+        // Add topic parameter if a specific category is selected
         if (selectedCategory !== "All") {
-          fetchedNews = await newsService.getNewsByCategory(selectedCategory);
+          params.append("topic", selectedCategory);
         }
 
-        // const articleResults = await Promise.all(articlesPromises);
-        // const validArticles = articleResults.filter(
-        //   (article) => article !== null
-        // ) as NewsEvent[];
+        // Fetch news using the Feed API
+        try {
+          fetchedNews = await newsService.getFeedContent(params.toString());
+        } catch (error) {
+          console.error("Error fetching feed content:", error);
+          // Fallback to existing methods if the Feed API fails
+          if (selectedSegment === "trending") {
+            fetchedNews = await newsService.getTrendingNewsEvents();
+          } else if (selectedSegment === "latest") {
+            fetchedNews = await newsService.getLatestNewsEvents();
+          } else {
+            // For "forYou", use mixed content as fallback
+            fetchedNews = await newsService.getLatestNewsEvents();
+          }
 
-        // setNewsItems(validArticles);
+          // If a category is selected, filter by category
+          if (selectedCategory !== "All") {
+            fetchedNews = await newsService.getNewsByCategory(selectedCategory);
+          }
+        }
+
+        setNewsItems(fetchedNews);
+        setError(null);
       } catch (err) {
         console.error("Failed to fetch news:", err);
         setError("Could not load news. Please try again later.");
@@ -89,7 +120,6 @@ const Home: React.FC = () => {
         setIsLoading(false);
       }
     };
-
     fetchNewsData();
   }, [selectedSegment, selectedCategory]);
 
@@ -100,42 +130,6 @@ const Home: React.FC = () => {
   useIonViewDidLeave(() => {
     posthogPageleaveCaptureEvent();
   });
-
-  // Format relative time (e.g., "2h ago")
-  const formatRelativeTime = (dateString: string): string => {
-    try {
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-      if (diffInSeconds < 60) {
-        return "Just now";
-      }
-
-      const diffInMinutes = Math.floor(diffInSeconds / 60);
-      if (diffInMinutes < 60) {
-        return `${diffInMinutes}m ago`;
-      }
-
-      const diffInHours = Math.floor(diffInMinutes / 60);
-      if (diffInHours < 24) {
-        return `${diffInHours}h ago`;
-      }
-
-      const diffInDays = Math.floor(diffInHours / 24);
-      if (diffInDays < 7) {
-        return `${diffInDays}d ago`;
-      }
-
-      // For older articles, just return the date
-      return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-      }).format(date);
-    } catch (e) {
-      return "Unknown date";
-    }
-  };
 
   // Handle scroll to show/hide scroll-to-top button and set header translucency
   const handleScroll = (e: CustomEvent) => {
@@ -150,49 +144,45 @@ const Home: React.FC = () => {
     setIsLoading(true);
     try {
       let fetchedNews: NewsEvent[] = [];
+      let feedType: string;
 
-      if (selectedSegment === "trending") {
-        fetchedNews = await newsService.getTrendingNewsEvents();
-      } else if (selectedSegment === "latest") {
-        fetchedNews = await newsService.getLatestNewsEvents();
-      } else {
-        fetchedNews = await newsService.getLatestNewsEvents();
+      // Map selected segment to Feed API type parameter
+      switch (selectedSegment) {
+        case "forYou":
+          feedType = "recommended";
+          break;
+        case "trending":
+          feedType = "trending";
+          break;
+        case "latest":
+          feedType = "latest";
+          break;
+        default:
+          feedType = "mixed";
       }
 
+      // Build query parameters for the Feed API
+      const params = new URLSearchParams();
+      params.append("type", feedType);
+      params.append("timeRange", "week");
+      params.append("limit", "20");
+      params.append("offset", "0");
+      params.append("excludeRead", "true");
+
+      // Add topic parameter if a specific category is selected
       if (selectedCategory !== "All") {
-        fetchedNews = await newsService.getNewsByCategory(selectedCategory);
+        params.append("topic", selectedCategory);
       }
 
-      const articlesPromises = fetchedNews.map(async (newsEvent) => {
-        const articlesData = await newsService.getNewsEventArticles(
-          newsEvent.id,
-          1,
-          0
-        );
-        if (articlesData.articles.length > 0) {
-          const article = articlesData.articles[0];
-          return {
-            ...article,
-            source: article.sourceName || "Unknown Source",
-            date: formatRelativeTime(article.publicationDate),
-            imageUrl:
-              article.imageUrl ||
-              "https://source.unsplash.com/random/1000x600?news",
-            category:
-              newsEvent.topics && newsEvent.topics.length > 0
-                ? newsEvent.topics[0].name
-                : "News",
-            newsEventId: newsEvent.id,
-          };
-        }
-        return null;
-      });
+      // Fetch news using the Feed API
+      try {
+        fetchedNews = await newsService.getFeedContent(params.toString());
+        setNewsItems(fetchedNews);
+      } catch (error) {
+        console.error("Error refreshing feed content:", error);
+        // Fallback handling if needed
+      }
 
-      // const articleResults = await Promise.all(articlesPromises);
-      // const validArticles = articleResults.filter(
-      //   (article) => article !== null
-      // ) as NewsEvent[];
-      // setNewsItems(validArticles);
       setError(null);
     } catch (err) {
       console.error("Failed to refresh news:", err);
@@ -239,33 +229,48 @@ const Home: React.FC = () => {
             <IonSegment
               value={selectedSegment}
               onIonChange={(e) => setSelectedSegment(e.detail.value as string)}
-              className="custom-segment"
+              className="feed-segment"
             >
+              <IonSegmentButton value="forYou" layout="icon-start">
+                <IonIcon icon={sparkles} size="small" />
+                <IonLabel>For You</IonLabel>
+              </IonSegmentButton>
               <IonSegmentButton value="trending">
                 <IonLabel>Trending</IonLabel>
               </IonSegmentButton>
               <IonSegmentButton value="latest">
                 <IonLabel>Latest</IonLabel>
               </IonSegmentButton>
-              <IonSegmentButton value="following">
-                <IonLabel>Following</IonLabel>
-              </IonSegmentButton>
             </IonSegment>
           </div>
 
           <div className="categories-container">
             <div className="categories-scroll">
-              {categories.map((category) => (
-                <IonChip
-                  key={category}
-                  color={selectedCategory === category ? "primary" : "medium"}
-                  className={`category-chip ${
-                    selectedCategory === category ? "active" : ""
-                  }`}
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  <IonLabel>{category}</IonLabel>
-                </IonChip>
+              {categories.map(([categoryIcon, categoryName]) => (
+                <React.Fragment key={categoryName}>
+                  <IonChip
+                    color={
+                      selectedCategory === categoryName ? "primary" : "medium"
+                    }
+                    className={`category-chip ${
+                      selectedCategory === categoryName ? "active" : ""
+                    }`}
+                    onClick={() => setSelectedCategory(categoryName as string)}
+                  >
+                    <div>
+                      {categoryIcon && (
+                        <IonIcon
+                          icon={categoryIcon}
+                          className={`category-icon ${
+                            selectedCategory === categoryName ? "active" : ""
+                          }`}
+                          size="small"
+                        />
+                      )}
+                      <IonLabel>{categoryName}</IonLabel>
+                    </div>
+                  </IonChip>
+                </React.Fragment>
               ))}
             </div>
           </div>
@@ -279,9 +284,8 @@ const Home: React.FC = () => {
                     key={`skeleton-${index}`}
                     loading={true}
                     title=""
-                    source=""
+                    sources={0}
                     date=""
-                    excerpt=""
                   />
                 ))
             ) : filteredNews.length > 0 ? (
@@ -289,11 +293,14 @@ const Home: React.FC = () => {
                 <NewsCard
                   key={item.id}
                   title={item.title}
-                  source={""}
+                  sources={item.articleCount}
                   date={item.createdAt}
-                  excerpt={item.summary || ""}
                   imageUrl={item.imageUrl}
-                  category={item.topics[0]["name"]}
+                  category={
+                    item.topics && item.topics.length > 0
+                      ? item.topics[0].name
+                      : "News"
+                  }
                   onClick={() => (window.location.href = `/article/${item.id}`)}
                 />
               ))
