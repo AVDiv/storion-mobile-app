@@ -13,6 +13,21 @@ export interface NewsEvent {
   articleCount: number;
   imageUrl?: string;
   topics: Topic[];
+  // Language bias properties
+  overallLanguageBias?: number;
+  unbiasedArticlesCount?: number;
+  biasedArticlesCount?: number;
+  // Political bias properties
+  overallPoliticalBiasScore?: number;
+  overallPoliticalBiasConfidence?: number;
+  leftLeaningArticlesCount?: number;
+  rightLeaningArticlesCount?: number;
+  centerArticlesCount?: number;
+  politicalBiasDistribution?: {
+    left: number;
+    right: number;
+    center: number;
+  };
 }
 
 export interface NewsEventArticle {
@@ -24,6 +39,11 @@ export interface NewsEventArticle {
   sourceId: string | null;
   sourceName: string | null;
   imageUrl?: string;
+  // Language bias property
+  languageBias?: number;
+  // Political bias properties
+  politicalBiasConfidence?: number;
+  politicalBiasOrientation?: "left" | "right" | "center";
 }
 
 export interface NewsEventArticlesResponse {

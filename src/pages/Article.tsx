@@ -22,6 +22,16 @@ import {
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
+  getBiasDescription,
+  getBiasColorClass,
+  getBiasBgColor,
+} from "../utils/biasUtils";
+import {
+  getPoliticalBiasDescription,
+  getPoliticalBiasColor,
+  getPoliticalBiasBgColor,
+} from "../utils/politicalBiasUtils";
+import {
   bookmarkOutline,
   shareOutline,
   textOutline,
@@ -281,6 +291,7 @@ const Article: React.FC = () => {
                 <IonLabel>{category}</IonLabel>
               </IonChip>
               <span className="article-read-time">{readTime}</span>
+              {/* overallLanguageBias chips have been moved below header content */}
             </div>
             <div className="article-header-content">
               <h1>{newsEvent.title}</h1>
@@ -294,6 +305,394 @@ const Article: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Overall bias metrics below title */}
+            {newsEvent.overallLanguageBias !== undefined && (
+              <div
+                className="article-bias-gauge-container"
+                style={{
+                  marginBottom: "20px",
+                  marginTop: "10px",
+                  borderRadius: "14px",
+                  padding: "16px",
+                  background: "var(--ion-background-color)",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                }}
+              >
+                <h4
+                  style={{
+                    margin: "0 0 14px 0",
+                    fontSize: "15px",
+                    fontWeight: "600",
+                    color: "var(--ion-text-color)",
+                  }}
+                >
+                  Article Bias Analysis
+                </h4>
+
+                {/* Gauge visualization */}
+                <div
+                  className="bias-gauge"
+                  style={{
+                    position: "relative",
+                    height: "50px",
+                    marginBottom: "12px",
+                  }}
+                >
+                  {/* Gauge background */}
+                  <div
+                    style={{
+                      position: "relative",
+                      height: "16px",
+                      marginTop: "10px",
+                      marginBottom: "10px",
+                      background:
+                        "linear-gradient(to right, var(--ion-color-success), var(--ion-color-medium-tint), var(--ion-color-danger))",
+                      borderRadius: "8px",
+                      overflow: "hidden",
+                      boxShadow: "inset 0 1px 3px rgba(0,0,0,0.2)",
+                      border: "1px solid var(--ion-color-step-200)",
+                    }}
+                  >
+                    {/* Center marker */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: "50%",
+                        top: "0",
+                        bottom: "0",
+                        width: "2px",
+                        backgroundColor: "var(--ion-color-dark)",
+                        transform: "translateX(-50%)",
+                        zIndex: "1",
+                      }}
+                    />
+                  </div>
+
+                  {/* Gauge labels */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: "11px",
+                      color: "var(--ion-color-step-500)",
+                      marginTop: "6px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    <span>Without Bias</span>
+                    <span>Moderate Bias</span>
+                    <span>Extreme Bias</span>
+                  </div>
+
+                  {/* Needle indicator */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: `${
+                        ((newsEvent.overallLanguageBias + 1) / 2) * 100
+                      }%`,
+                      top: "0",
+                      transform: "translateX(-50%)",
+                      width: "3px",
+                      height: "30px",
+                      backgroundColor: "var(--ion-color-dark)",
+                      borderRadius: "3px",
+                      zIndex: "2",
+                      transition: "left 0.5s ease-out",
+                    }}
+                  />
+
+                  {/* Gauge value indicator (dot on top of needle) */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: `${
+                        ((newsEvent.overallLanguageBias + 1) / 2) * 100
+                      }%`,
+                      top: "0",
+                      transform: "translateX(-50%)",
+                      width: "14px",
+                      height: "14px",
+                      backgroundColor: getBiasColorClass(
+                        newsEvent.overallLanguageBias
+                      ),
+                      borderRadius: "50%",
+                      border: "2px solid var(--ion-color-step-50)",
+                      zIndex: "3",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                      transition: "left 0.5s ease-out",
+                    }}
+                  />
+                </div>
+
+                {/* Metrics display */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    fontSize: "13px",
+                    padding: "8px 4px 0",
+                    borderTop: "1px solid var(--ion-color-step-100)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      color: "var(--ion-color-step-600)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        borderRadius: "50%",
+                        backgroundColor:
+                          "rgba(var(--ion-color-success-rgb), 0.8)",
+                        marginRight: "6px",
+                      }}
+                    ></div>
+                    <span>{newsEvent.unbiasedArticlesCount || 0} low bias</span>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: "3px 10px",
+                      borderRadius: "16px",
+                      backgroundColor: getBiasBgColor(
+                        newsEvent.overallLanguageBias
+                      ),
+                      color: getBiasColorClass(newsEvent.overallLanguageBias),
+                      fontWeight: "500",
+                    }}
+                  >
+                    {getBiasDescription(newsEvent.overallLanguageBias)}
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      color: "var(--ion-color-step-600)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "12px",
+                        height: "12px",
+                        borderRadius: "50%",
+                        backgroundColor:
+                          "rgba(var(--ion-color-danger-rgb), 0.8)",
+                        marginRight: "6px",
+                      }}
+                    ></div>
+                    <span>{newsEvent.biasedArticlesCount || 0} high bias</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Political bias metrics below language bias */}
+            {newsEvent.overallPoliticalBiasScore !== undefined &&
+              newsEvent.topics &&
+              newsEvent.topics.some(
+                (topic) => topic.name.toLowerCase() === "politics"
+              ) && (
+                <div
+                  className="article-bias-gauge-container"
+                  style={{
+                    marginBottom: "20px",
+                    marginTop: "10px",
+                    borderRadius: "14px",
+                    padding: "16px",
+                    background: "var(--ion-background-color)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  }}
+                >
+                  <h4
+                    style={{
+                      margin: "0 0 14px 0",
+                      fontSize: "15px",
+                      fontWeight: "600",
+                      color: "var(--ion-text-color)",
+                    }}
+                  >
+                    Political Orientation Analysis
+                  </h4>
+
+                  {/* Gauge visualization */}
+                  <div
+                    className="bias-gauge"
+                    style={{
+                      position: "relative",
+                      height: "50px",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    {/* Gauge background */}
+                    <div
+                      style={{
+                        position: "relative",
+                        height: "16px",
+                        marginTop: "10px",
+                        marginBottom: "10px",
+                        background:
+                          "linear-gradient(to right, var(--ion-color-primary), var(--ion-color-medium-tint), var(--ion-color-danger))",
+                        borderRadius: "8px",
+                        overflow: "hidden",
+                        boxShadow: "inset 0 1px 3px rgba(0,0,0,0.2)",
+                        border: "1px solid var(--ion-color-step-200)",
+                      }}
+                    >
+                      {/* Center marker */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          left: "50%",
+                          top: "0",
+                          bottom: "0",
+                          width: "2px",
+                          backgroundColor: "var(--ion-color-dark)",
+                          transform: "translateX(-50%)",
+                          zIndex: "1",
+                        }}
+                      />
+                    </div>
+
+                    {/* Gauge labels */}
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "11px",
+                        color: "var(--ion-color-step-500)",
+                        marginTop: "6px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      <span>Far Left</span>
+                      <span>Center</span>
+                      <span>Far Right</span>
+                    </div>
+
+                    {/* Needle indicator */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: `${
+                          ((newsEvent.overallPoliticalBiasScore + 1) / 2) * 100
+                        }%`,
+                        top: "0",
+                        transform: "translateX(-50%)",
+                        width: "3px",
+                        height: "30px",
+                        backgroundColor: "var(--ion-color-dark)",
+                        borderRadius: "3px",
+                        zIndex: "2",
+                        transition: "left 0.5s ease-out",
+                      }}
+                    />
+
+                    {/* Gauge value indicator (dot on top of needle) */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: `${
+                          ((newsEvent.overallPoliticalBiasScore + 1) / 2) * 100
+                        }%`,
+                        top: "0",
+                        transform: "translateX(-50%)",
+                        width: "14px",
+                        height: "14px",
+                        backgroundColor: getPoliticalBiasColor(
+                          newsEvent.overallPoliticalBiasScore
+                        ),
+                        borderRadius: "50%",
+                        border: "2px solid var(--ion-color-step-50)",
+                        zIndex: "3",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                        transition: "left 0.5s ease-out",
+                      }}
+                    />
+                  </div>
+
+                  {/* Metrics display */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      fontSize: "13px",
+                      padding: "8px 4px 0",
+                      borderTop: "1px solid var(--ion-color-step-100)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        color: "var(--ion-color-step-600)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "12px",
+                          height: "12px",
+                          borderRadius: "50%",
+                          backgroundColor:
+                            "rgba(var(--ion-color-primary-rgb), 0.8)",
+                          marginRight: "6px",
+                        }}
+                      ></div>
+                      <span>
+                        {newsEvent.leftLeaningArticlesCount || 0} left
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        padding: "3px 10px",
+                        borderRadius: "16px",
+                        backgroundColor: getPoliticalBiasBgColor(
+                          newsEvent.overallPoliticalBiasScore
+                        ),
+                        color: getPoliticalBiasColor(
+                          newsEvent.overallPoliticalBiasScore
+                        ),
+                        fontWeight: "500",
+                      }}
+                    >
+                      {getPoliticalBiasDescription(
+                        newsEvent.overallPoliticalBiasScore
+                      )}
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        color: "var(--ion-color-step-600)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "12px",
+                          height: "12px",
+                          borderRadius: "50%",
+                          backgroundColor:
+                            "rgba(var(--ion-color-danger-rgb), 0.8)",
+                          marginRight: "6px",
+                        }}
+                      ></div>
+                      <span>
+                        {newsEvent.rightLeaningArticlesCount || 0} right
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             {/* Article body content */}
             <div
@@ -334,6 +733,14 @@ const Article: React.FC = () => {
                             related.publicationDate
                           )}
                           imageUrl={related.imageUrl}
+                          topics={newsEvent.topics}
+                          languageBias={related.languageBias}
+                          politicalBiasConfidence={
+                            related.politicalBiasConfidence
+                          }
+                          politicalBiasOrientation={
+                            related.politicalBiasOrientation
+                          }
                           onClick={handleRelatedArticleClick}
                         />
                       </SwiperSlide>

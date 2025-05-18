@@ -5,7 +5,7 @@
 
 .news-card-image-container {
   position: relative;
-  height: 200px;
+  height: 70px;
   overflow: hidden;
 }
 
@@ -46,23 +46,33 @@
   font-size: 12px;
 }
 
-.news-card-date ion-icon {
+.news-card-date .icon {
   margin-right: 4px;
-  font-size: 14px;
+  font-size: 10px;
 }
 
 .news-card-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: 0px;
 }
 
 .action-button {
-  font-size: 12px;
+  --border-width: 1px;
+  --border-style: solid;
+  --border-color: rgba(var(--ion-background-color-step-200-rgb), 0.2);
+  transition-duration: 200ms;
+  width: 44px;
+  height: 44px !important;
+}
+.action-button.active {
+  --border-color: rgba(var(--ion-background-color-step-150-rgb), 0.5);
+  --background: rgba(var(--ion-color-secondary-rgb), 0.15);
+  --box-shadow: 0 4px 12px 4px rgba(var(--ion-color-primary-rgb), 0.1);
+  transition-duration: 200ms;
 }
 
-.read-more-button {
-  margin-left: auto;
-  font-weight: 500;
+.action-button.active .icon {
+  fill: var(--ion-color-primary);
 }

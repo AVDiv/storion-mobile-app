@@ -8,15 +8,17 @@ import {
   IonSegmentButton,
   IonLabel,
   IonChip,
-  IonIcon,
   IonFab,
   IonFabButton,
   useIonViewDidEnter,
   useIonViewDidLeave,
   IonToast,
-  IonSkeletonText,
 } from "@ionic/react";
-import { apps, arrowUpOutline, sparkles } from "ionicons/icons";
+import {
+  DotsGrid3x3 as DotGridIcon,
+  SparksSolid as SparkIcon,
+  ArrowUp as ArrowUpIcon,
+} from "iconoir-react";
 import NewsCard from "../components/NewsCard";
 import HomeHeader from "../components/pages/home/Header";
 import { useAuth } from "../services/auth/authContext";
@@ -30,7 +32,7 @@ import { NewsEvent } from "../types";
 
 // Categories for the filters
 const categories = [
-  [apps, "All"],
+  [DotGridIcon, "All"],
   [null, "Technology"],
   [null, "Science"],
   [null, "Business"],
@@ -206,7 +208,6 @@ const Home: React.FC = () => {
         (item.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ??
           false)
       : true;
-
     return matchesSearch;
   });
 
@@ -232,7 +233,7 @@ const Home: React.FC = () => {
               className="feed-segment"
             >
               <IonSegmentButton value="forYou" layout="icon-start">
-                <IonIcon icon={sparkles} size="small" />
+                <SparkIcon />
                 <IonLabel>For You</IonLabel>
               </IonSegmentButton>
               <IonSegmentButton value="trending">
@@ -247,7 +248,7 @@ const Home: React.FC = () => {
           <div className="categories-container">
             <div className="categories-scroll">
               {categories.map(([categoryIcon, categoryName]) => (
-                <React.Fragment key={categoryName}>
+                <React.Fragment key={categoryName as string}>
                   <IonChip
                     color={
                       selectedCategory === categoryName ? "primary" : "medium"
@@ -258,16 +259,15 @@ const Home: React.FC = () => {
                     onClick={() => setSelectedCategory(categoryName as string)}
                   >
                     <div>
-                      {categoryIcon && (
-                        <IonIcon
-                          icon={categoryIcon}
-                          className={`category-icon ${
+                      {categoryIcon &&
+                        React.createElement(categoryIcon, {
+                          className: `category-icon ${
                             selectedCategory === categoryName ? "active" : ""
-                          }`}
-                          size="small"
-                        />
-                      )}
-                      <IonLabel>{categoryName}</IonLabel>
+                          }`,
+                          width: "16px",
+                          strokeWidth: 3,
+                        })}
+                      <IonLabel>{categoryName as string}</IonLabel>
                     </div>
                   </IonChip>
                 </React.Fragment>
@@ -301,6 +301,9 @@ const Home: React.FC = () => {
                       ? item.topics[0].name
                       : "News"
                   }
+                  overallLanguageBias={item.overallLanguageBias}
+                  unbiasedArticlesCount={item.unbiasedArticlesCount}
+                  biasedArticlesCount={item.biasedArticlesCount}
                   onClick={() => (window.location.href = `/article/${item.id}`)}
                 />
               ))
@@ -316,7 +319,7 @@ const Home: React.FC = () => {
         {showScrollTop && (
           <IonFab vertical="bottom" horizontal="end" slot="fixed">
             <IonFabButton onClick={scrollToTop} size="small">
-              <IonIcon icon={arrowUpOutline} />
+              <ArrowUpIcon />
             </IonFabButton>
           </IonFab>
         )}

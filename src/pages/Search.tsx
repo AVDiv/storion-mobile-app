@@ -287,9 +287,8 @@ const Search: React.FC = () => {
                     key={`skeleton-${index}`}
                     loading={true}
                     title=""
-                    source=""
+                    sources={null}
                     date=""
-                    excerpt=""
                   />
                 ))
             ) : error ? (

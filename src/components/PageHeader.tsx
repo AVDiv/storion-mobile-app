@@ -58,7 +58,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
         {!searchVisible ? (
           <>
             <IonTitle className="page-title">{title}</IonTitle>
-            <IonButtons slot="end">
+            {/* <IonButtons slot="end">
               {showSearch && (
                 <IonButton onClick={toggleSearch}>
                   <IonIcon slot="icon-only" icon={searchOutline} />
@@ -75,7 +75,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                   <IonIcon slot="icon-only" icon={settingsOutline} />
                 </IonButton>
               )}
-            </IonButtons>
+            </IonButtons> */}
           </>
         ) : (
           <>

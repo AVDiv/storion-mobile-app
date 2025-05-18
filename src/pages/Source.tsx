@@ -310,9 +310,8 @@ const SourcePage: React.FC = () => {
           <IonButtons slot="end">
             <IonButton
               onClick={toggleSortOrder}
-              title={`Sort by ${
-                sortOrder === "newest" ? "oldest first" : "newest first"
-              }`}
+              title={`Sort by ${sortOrder === "newest" ? "oldest first" : "newest first"
+                }`}
             >
               <IonIcon icon={filterOutline} />
             </IonButton>
@@ -432,130 +431,130 @@ const SourcePage: React.FC = () => {
                 <div className="article-cards">
                   {loading && filteredArticles.length === 0
                     ? // Skeleton loader for initial load
-                      Array(3)
-                        .fill(null)
-                        .map((_, index) => (
-                          <IonCard
-                            key={`skeleton-${index}`}
-                            className="article-card-skeleton"
-                          >
-                            <div className="card-img-skeleton">
-                              <IonSkeletonText animated />
-                            </div>
-                            <IonCardHeader>
-                              <IonSkeletonText
-                                animated
-                                style={{ width: "40%" }}
-                              />
-                              <IonSkeletonText
-                                animated
-                                style={{ width: "90%" }}
-                              />
-                            </IonCardHeader>
-                            <IonCardContent>
-                              <IonSkeletonText
-                                animated
-                                style={{ width: "60%" }}
-                              />
-                            </IonCardContent>
-                          </IonCard>
-                        ))
-                    : filteredArticles.map((article) => (
+                    Array(3)
+                      .fill(null)
+                      .map((_, index) => (
                         <IonCard
-                          key={article.id}
-                          className="article-card"
-                          routerLink={`/article/${article.id}`}
+                          key={`skeleton-${index}`}
+                          className="article-card-skeleton"
                         >
-                          <div className="card-img-container">
-                            <img
-                              src={getPlaceholderImage(article.title)}
-                              alt={article.title}
-                              className="article-card-img"
-                            />
+                          <div className="card-img-skeleton">
+                            <IonSkeletonText animated />
                           </div>
                           <IonCardHeader>
-                            {article.group && (
-                              <IonCardSubtitle className="article-group-name">
-                                <IonIcon icon={layersOutline} />
-                                {article.group.title}
-                              </IonCardSubtitle>
-                            )}
-                            <IonCardTitle className="article-card-title">
-                              {article.title}
-                            </IonCardTitle>
+                            <IonSkeletonText
+                              animated
+                              style={{ width: "40%" }}
+                            />
+                            <IonSkeletonText
+                              animated
+                              style={{ width: "90%" }}
+                            />
                           </IonCardHeader>
-                          <IonCardContent className="article-card-meta">
-                            <div className="article-date-info">
-                              <IonIcon icon={timeOutline} />
-                              <span className="article-date-text">
-                                {formatRelativeTime(article.publicationDate)}
-                              </span>
-                            </div>
+                          <IonCardContent>
+                            <IonSkeletonText
+                              animated
+                              style={{ width: "60%" }}
+                            />
                           </IonCardContent>
                         </IonCard>
-                      ))}
+                      ))
+                    : filteredArticles.map((article) => (
+                      <IonCard
+                        key={article.id}
+                        className="article-card"
+                        routerLink={`/article/${article.id}`}
+                      >
+                        <div className="card-img-container">
+                          <img
+                            src={getPlaceholderImage(article.title)}
+                            alt={article.title}
+                            className="article-card-img"
+                          />
+                        </div>
+                        <IonCardHeader>
+                          {article.group && (
+                            <IonCardSubtitle className="article-group-name">
+                              <IonIcon icon={layersOutline} />
+                              {article.group.title}
+                            </IonCardSubtitle>
+                          )}
+                          <IonCardTitle className="article-card-title">
+                            {article.title}
+                          </IonCardTitle>
+                        </IonCardHeader>
+                        <IonCardContent className="article-card-meta">
+                          <div className="article-date-info">
+                            <IonIcon icon={timeOutline} />
+                            <span className="article-date-text">
+                              {formatRelativeTime(article.publicationDate)}
+                            </span>
+                          </div>
+                        </IonCardContent>
+                      </IonCard>
+                    ))}
                 </div>
               ) : (
                 <IonList className="article-list">
                   {loading && filteredArticles.length === 0
                     ? // Skeleton loader for initial load
-                      Array(5)
-                        .fill(null)
-                        .map((_, index) => (
-                          <IonItem
-                            key={`skeleton-${index}`}
-                            className="article-item-skeleton"
-                          >
-                            <IonLabel>
-                              <h2>
-                                <IonSkeletonText
-                                  animated
-                                  style={{ width: "90%" }}
-                                />
-                              </h2>
-                              <p>
-                                <IonSkeletonText
-                                  animated
-                                  style={{ width: "40%" }}
-                                />
-                              </p>
-                              <p>
-                                <IonSkeletonText
-                                  animated
-                                  style={{ width: "30%" }}
-                                />
-                              </p>
-                            </IonLabel>
-                          </IonItem>
-                        ))
-                    : filteredArticles.map((article) => (
+                    Array(5)
+                      .fill(null)
+                      .map((_, index) => (
                         <IonItem
-                          key={article.id}
-                          className="article-list-item"
-                          routerLink={`/article/${article.id}`}
-                          detail={true}
+                          key={`skeleton-${index}`}
+                          className="article-item-skeleton"
                         >
                           <IonLabel>
-                            <h2 className="article-list-title">
-                              {article.title}
+                            <h2>
+                              <IonSkeletonText
+                                animated
+                                style={{ width: "90%" }}
+                              />
                             </h2>
-                            {article.group && (
-                              <div className="article-group-tag">
-                                <IonIcon icon={layersOutline} />
-                                {article.group.title}
-                              </div>
-                            )}
-                            <p className="article-date-line">
-                              <IonIcon icon={calendarOutline} />
-                              {formatDate(article.publicationDate)}
-                              <span className="relative-time">
-                                ({formatRelativeTime(article.publicationDate)})
-                              </span>
+                            <p>
+                              <IonSkeletonText
+                                animated
+                                style={{ width: "40%" }}
+                              />
+                            </p>
+                            <p>
+                              <IonSkeletonText
+                                animated
+                                style={{ width: "30%" }}
+                              />
                             </p>
                           </IonLabel>
-                          <IonIcon icon={chevronForward} slot="end" />
                         </IonItem>
-                      ))}
+                      ))
+                    : filteredArticles.map((article) => (
+                      <IonItem
+                        key={article.id}
+                        className="article-list-item"
+                        routerLink={`/article/${article.id}`}
+                        detail={true}
+                      >
+                        <IonLabel>
+                          <h2 className="article-list-title">
+                            {article.title}
+                          </h2>
+                          {article.group && (
+                            <div className="article-group-tag">
+                              <IonIcon icon={layersOutline} />
+                              {article.group.title}
+                            </div>
+                          )}
+                          <p className="article-date-line">
+                            <IonIcon icon={calendarOutline} />
+                            {formatDate(article.publicationDate)}
+                            <span className="relative-time">
+                              ({formatRelativeTime(article.publicationDate)})
+                            </span>
+                          </p>
+                        </IonLabel>
+                        <IonIcon icon={chevronForward} slot="end" />
+                      </IonItem>
+                    ))}
                 </IonList>
               )}
 

@@ -43,11 +43,11 @@ const Profile: React.FC = () => {
       <IonHeader>
         <IonToolbar>
           <IonTitle>Profile</IonTitle>
-          <IonButtons slot="end">
+          {/* <IonButtons slot="end">
             <IonButton onClick={handleSettings}>
               <IonIcon icon={settingsOutline} />
             </IonButton>
-          </IonButtons>
+          </IonButtons> */}
         </IonToolbar>
       </IonHeader>
 
@@ -73,7 +73,7 @@ const Profile: React.FC = () => {
               </IonCardHeader>
               <IonCardContent>
                 <IonList lines="full">
-                  <IonItem routerLink="/settings">
+                  <IonItem routerLink="/settings" disabled={true}>
                     <IonIcon icon={settingsOutline} slot="start" />
                     <IonLabel>Settings</IonLabel>
                   </IonItem>

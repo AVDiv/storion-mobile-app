@@ -103,6 +103,18 @@ class NewsService {
         imageUrl: group.imageUrl || this.getRandomPlaceholderImage(group.title),
         createdAt: group.createdAt,
         updatedAt: group.updatedAt,
+        articleCount: group.articleCount || null,
+        // Language bias properties
+        overallLanguageBias: group.overallLanguageBias,
+        unbiasedArticlesCount: group.unbiasedArticlesCount,
+        biasedArticlesCount: group.biasedArticlesCount,
+        // Political bias properties
+        overallPoliticalBiasScore: group.overallPoliticalBiasScore,
+        overallPoliticalBiasConfidence: group.overallPoliticalBiasConfidence,
+        leftLeaningArticlesCount: group.leftLeaningArticlesCount,
+        rightLeaningArticlesCount: group.rightLeaningArticlesCount,
+        centerArticlesCount: group.centerArticlesCount,
+        politicalBiasDistribution: group.politicalBiasDistribution,
       }));
     } catch (error) {
       console.error("Failed to fetch feed content:", error);

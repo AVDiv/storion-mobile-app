@@ -1,4 +1,8 @@
 function calculateTimeAgo(date: string | number | Date): string {
+  console.log("calculateTimeAgo", date);
+  if (typeof date === "string" && date.endsWith("ago")) {
+    return date;
+  }
   const d = new Date(date);
   const seconds = Math.floor((Date.now() - d.getTime()) / 1000);
   const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });

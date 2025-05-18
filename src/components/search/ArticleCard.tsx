@@ -60,11 +60,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) => {
     <NewsCard
       key={article.id}
       title={article.title}
-      source={article.topics?.[0]?.name || "News Source"}
-      date={formatDate(article.updatedAt)}
-      excerpt={article.summary}
+      // source={article.topics?.[0]?.name || "News Source"}
+      sources={article.articleCount}
+      date={article.createdAt}
+      // excerpt={article.summary}
       imageUrl={getPlaceholderImage(article.title)}
       onClick={handleClick}
+      // category={article.topics?.[0]?.name || "General"}
     />
   );
 };

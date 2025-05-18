@@ -1,7 +1,10 @@
+.page-header {
+  box-shadow: none;
+}
+
 .page-header ion-toolbar {
   --background: rgba(var(--ion-background-color-rgb), 0.95);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
 }
 
 .page-title {
