@@ -79,11 +79,14 @@ ion-content {
 .article-hero {
   position: relative;
   width: 100%;
-  height: 40vh;
-  min-height: 240px;
-  max-height: 350px; /* Slightly reduce max height */
+  height: 15vh;
+  max-height: 350px;
   overflow: hidden;
   background-color: var(--ion-color-step-150);
+}
+
+.article-hero.has-image {
+  height: 40vh;
 }
 
 .article-image {

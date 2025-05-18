@@ -40,6 +40,7 @@ import {
   linkOutline,
   chatbubbleOutline,
   arrowForward,
+  image,
 } from "ionicons/icons";
 // Import Swiper React components
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -234,8 +235,8 @@ const Article: React.FC = () => {
   const formattedDate = formatDate(newsEvent.createdAt);
 
   // Use default image if none provided
-  const imageUrl =
-    newsEvent.imageUrl || "https://source.unsplash.com/random/1200x600?news";
+  const imageUrl = newsEvent.imageUrl || "";
+  const isImageAvailable = imageUrl && imageUrl !== "";
 
   // Navigation handler for related articles
   const handleRelatedArticleClick = (articleId: string) => {
@@ -279,8 +280,14 @@ const Article: React.FC = () => {
         onIonScroll={handleScroll}
         className={`article-content-wrapper font-size-${fontSize}`}
       >
-        <div className="article-hero">
-          <img src={imageUrl} alt={newsEvent.title} className="article-image" />
+        <div className={`article-hero ${isImageAvailable ? "has-image" : ""}`}>
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt={newsEvent.title}
+              className="article-image"
+            />
+          )}
           <div className="article-overlay"></div>
         </div>
 
@@ -327,7 +334,7 @@ const Article: React.FC = () => {
                     color: "var(--ion-text-color)",
                   }}
                 >
-                  Article Bias Analysis
+                  Language Bias Analysis
                 </h4>
 
                 {/* Gauge visualization */}

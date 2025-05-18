@@ -284,10 +284,20 @@ const NewsCard: React.FC<NewsCardProps> = ({
 
       <IonCardContent>
         <div className="news-card-actions">
-          <IonButton fill="clear" size="small" className="action-button">
+          <IonButton
+            fill="clear"
+            size="small"
+            className="action-button"
+            disabled
+          >
             <BookmarkIcon className="icon" strokeWidth={2.5} width="1.4em" />
           </IonButton>
-          <IonButton fill="clear" size="small" className="action-button">
+          <IonButton
+            fill="clear"
+            size="small"
+            className="action-button"
+            disabled
+          >
             <ShareIcon className="icon" strokeWidth={2.5} width="1.4em" />
           </IonButton>
         </div>
